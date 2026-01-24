@@ -10,21 +10,14 @@ import { SpiritualBackground } from '@/app/components/SpiritualBackground';
 
 type View = 'hero' | 'conversation';
 
-interface ConversationContext {
-  lastTopic: string;
-  lastKeywords: string[];
-  lastQuestionId?: string;
-}
-
 export default function App() {
   const [view, setView] = useState<View>('hero');
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [context, setContext] = useState<ConversationContext>({ lastTopic: '', lastKeywords: [] });
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
 
-  // Load diverse questions on mount
   useEffect(() => {
     loadDiverseQuestions();
   }, []);
@@ -34,7 +27,6 @@ export default function App() {
       const response = await fetch('/data/srimad-bhagavatam.json');
       const data = await response.json();
       
-      // Get diverse questions across difficulties and themes
       const foundational = data.questions
         .filter((q: any) => q.difficulty === 'foundational')
         .sort((a: any, b: any) => b.popularity - a.popularity)
@@ -59,47 +51,42 @@ export default function App() {
     }
   };
 
-  const extractKeywords = (text: string): string[] => {
-    const normalized = text.toLowerCase();
-    const stopWords = new Set(['the', 'is', 'are', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'this', 'that', 'these', 'those', 'a', 'an']);
+  const buildContextualQuery = (currentQuestion: string, messageHistory: Message[]): string => {
+    const lowerQuestion = currentQuestion.toLowerCase();
     
-    // Extract meaningful words
-    const words = normalized
+    // Detect follow-up question types
+    const isMoreInfo = /tell me more|elaborate|explain more|go deeper|continue/i.test(lowerQuestion);
+    const isPractice = /how.*practice|daily|implement|apply/i.test(lowerQuestion);
+    const isExample = /example|illustration|story|demonstrate/i.test(lowerQuestion);
+    const isObstacle = /obstacle|challenge|difficult|problem/i.test(lowerQuestion);
+    
+    // Get last assistant message topic
+    const lastAssistant = messageHistory
+      .filter(m => m.type === 'assistant')
+      .slice(-1)[0];
+    
+    if (!lastAssistant) return currentQuestion;
+    
+    // Extract core topic from last response
+    const topicWords = lastAssistant.content
+      .toLowerCase()
       .split(/\W+/)
-      .filter(word => word.length > 3 && !stopWords.has(word));
+      .filter(word => word.length > 4)
+      .filter(word => !['these', 'those', 'their', 'there', 'about', 'would', 'should', 'could', 'which', 'through'].includes(word))
+      .slice(0, 3);
     
-    // Remove duplicates and return top 8
-    return [...new Set(words)].slice(0, 8);
-  };
-
-  const isFollowUpQuestion = (query: string): boolean => {
-    const followUpPatterns = [
-      /^tell me more/i,
-      /^how (?:can|do) (?:i|we) practice/i,
-      /^what (?:are|is) (?:the )?obstacles?/i,
-      /^(?:can you )?explain.*(?:with|using) (?:an? )?example/i,
-      /^more (?:about|on|regarding)/i,
-      /^elaborate/i,
-      /^(?:give|show) me (?:an? )?example/i,
-      /^how (?:to|can)/i
-    ];
-    return followUpPatterns.some(pattern => pattern.test(query));
-  };
-
-  const buildContextualQuery = (originalQuery: string, ctx: ConversationContext): string => {
-    if (originalQuery.toLowerCase().includes('practice')) {
-      return `how to practice ${ctx.lastTopic} daily spiritual practice`;
+    // Build contextual query based on follow-up type
+    if (isMoreInfo) {
+      return `${topicWords.join(' ')} deeper explanation advanced understanding`;
+    } else if (isPractice) {
+      return `${topicWords.join(' ')} practice sadhana daily routine`;
+    } else if (isExample) {
+      return `${topicWords.join(' ')} example story illustration`;
+    } else if (isObstacle) {
+      return `${topicWords.join(' ')} obstacles challenges difficulties`;
+    } else {
+      return `${currentQuestion} ${topicWords.join(' ')}`;
     }
-    if (originalQuery.toLowerCase().includes('obstacle')) {
-      return `obstacles challenges difficulties ${ctx.lastTopic}`;
-    }
-    if (originalQuery.toLowerCase().includes('example')) {
-      return `example illustration story ${ctx.lastTopic}`;
-    }
-    if (originalQuery.toLowerCase().includes('more')) {
-      return `detailed explanation ${ctx.lastTopic} ${ctx.lastKeywords.join(' ')}`;
-    }
-    return `${originalQuery} ${ctx.lastKeywords.slice(0, 3).join(' ')}`;
   };
 
   const handleGetStarted = useCallback(() => {
@@ -110,46 +97,24 @@ export default function App() {
     setView('hero');
     setMessages([]);
     setQuestion('');
-    setContext({ lastTopic: '', lastKeywords: [] });
+    setUsedQuestionIds(new Set());
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!question.trim() || isLoading) return;
+  const handleFollowUpSubmit = useCallback(async (followUpQuestion: string) => {
+    if (!followUpQuestion.trim() || isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: question,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const currentQuestion = question;
-    setQuestion('');
     setIsLoading(true);
 
     try {
-      let searchQuery = currentQuestion;
+      const searchQuery = buildContextualQuery(followUpQuestion, messages);
+      const allResults = await findRelevantContent(searchQuery);
       
-      // Enhance query with context for follow-ups
-      if (isFollowUpQuestion(currentQuestion) && context.lastKeywords.length > 0) {
-        searchQuery = buildContextualQuery(currentQuestion, context);
-        console.log('Contextual query:', searchQuery);
-      }
-
-      const results = await findRelevantContent(searchQuery);
+      const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
+      const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
       
-      if (results.length > 0) {
-        // For follow-ups, try to find a different answer than the last one
-        let topResult = results[0];
-        
-        if (context.lastQuestionId && results.length > 1) {
-          // Find first result that's different from last question
-          const differentResult = results.find(r => r.questionId !== context.lastQuestionId);
-          if (differentResult) {
-            topResult = differentResult;
-          }
-        }
+      if (resultsToUse.length > 0) {
+        const topResult = resultsToUse[0];
+        setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -160,14 +125,6 @@ export default function App() {
         };
         
         setMessages(prev => [...prev, assistantMessage]);
-        
-        // Update context for future follow-ups
-        const keywords = extractKeywords(topResult.description + ' ' + topResult.title);
-        setContext({
-          lastTopic: topResult.title.toLowerCase(),
-          lastKeywords: keywords,
-          lastQuestionId: topResult.questionId
-        });
       } else {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -189,20 +146,98 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [question, isLoading, context]);
+  }, [messages, isLoading, usedQuestionIds]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!question.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: question,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const currentQuestion = question;
+    setQuestion('');
+    setIsLoading(true);
+
+    try {
+      const searchQuery = messages.length > 0 
+        ? buildContextualQuery(currentQuestion, messages)
+        : currentQuestion;
+
+      const allResults = await findRelevantContent(searchQuery);
+      
+      // Filter out already used questions
+      const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
+      
+      // Use fresh result if available, otherwise take next best from all results
+      const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
+      
+      if (resultsToUse.length > 0) {
+        const topResult = resultsToUse[0];
+        
+        // Mark this question as used
+        setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: topResult.description,
+          reference: topResult.reference,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I encountered an error searching the teachings. Please try rephrasing your question or ask something fundamental like 'Who am I?' or 'What is the purpose of life?'",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [question, isLoading, messages, usedQuestionIds]);
 
   const initialSuggestions = [
     "Who am I beyond this body?",
-    "What is the ultimate purpose of life?",
-    "What is bhakti-yoga?",
-    "How can I find inner peace?"
+    "What is the ultimate purpose of human life?",
+    "What is bhakti-yoga and devotional service?",
+    "How can I find inner peace and tranquility?",
+    "What is the nature of God and the soul?",
+    "How does karma and rebirth work?",
+    "What is dharma and righteous living?",
+    "How can I overcome material desires?",
+    "What is the role of a spiritual teacher?",
+    "How should I approach death?",
+    "What is maya or illusion?",
+    "Why is there suffering in the world?"
   ];
 
   const followUpSuggestions = [
     "Tell me more about this",
     "How can I practice this daily?",
     "What are the obstacles I might face?",
-    "Can you explain this with an example?"
+    "Can you explain this with an example?",
+    "How does this apply to my life?",
+    "What are the deeper insights?",
+    "Are there practical techniques?",
+    "What do the scriptures say?"
   ];
 
   return (
@@ -336,6 +371,16 @@ export default function App() {
                         suggestions={followUpSuggestions}
                         onSelect={(q) => {
                           setQuestion(q);
+                          setTimeout(() => {
+                            const userMessage: Message = {
+                              id: Date.now().toString(),
+                              type: 'user',
+                              content: q,
+                              timestamp: new Date()
+                            };
+                            setMessages(prev => [...prev, userMessage]);
+                            handleFollowUpSubmit(q);
+                          }, 50);
                         }}
                       />
                     )}
@@ -392,6 +437,23 @@ export default function App() {
           <div className="max-w-4xl mx-auto px-4 py-6">
             <p className="text-center text-sm text-slate-600">
               Wisdom from Bhagavad Gita and Srimad Bhagavatam · Educational exploration
+            </p>
+            <p className="text-center text-xs text-slate-500 mt-2">
+              Responses are generated from curated teachings and may not be fully comprehensive
+            </p>
+          </div>
+        </motion.footer>
+      )}
+      
+      {view === 'conversation' && (
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative z-10 border-t border-white/20 bg-white/60 backdrop-blur-sm"
+        >
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            <p className="text-center text-xs text-slate-500">
+              Responses are generated from curated teachings and may not be fully comprehensive
             </p>
           </div>
         </motion.footer>
