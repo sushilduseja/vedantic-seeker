@@ -508,7 +508,7 @@ export default function App() {
                   <div className="space-y-6">
                     <ConversationView messages={messages} isLoading={isLoading} />
                     
-                    {pendingAIRequest && !isLoadingAI && (
+                    {pendingAIRequest && !isLoadingAI && messages.filter(m => m.type === 'assistant').length >= 4 && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

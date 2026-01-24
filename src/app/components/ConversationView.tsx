@@ -17,8 +17,14 @@ interface ConversationViewProps {
   isLoading: boolean;
 }
 
-function parseAIContent(content: string): { text: string; concepts?: string[] } {
-  // Extract key concepts for visualization
+function parseAIContent(content: string): { text: string; concepts?: string[]; bullets?: string[] } {
+  // Parse bullet points (handles • ─ - * formats)
+  const bulletRegex = /^[•─\-*\s]+(.+)$/gm;
+  const bullets = Array.from(content.matchAll(bulletRegex))
+    .map(match => match[1]?.trim())
+    .filter((line): line is string => !!line && line.length > 0);
+  
+  // Extract key concepts for visualization (only if few bullets found)
   const conceptPatterns = [
     /understanding ([\w\s-]+)/gi,
     /the ([\w\s-]+) is/gi,
@@ -27,19 +33,22 @@ function parseAIContent(content: string): { text: string; concepts?: string[] } 
   ];
 
   const concepts = new Set<string>();
-  conceptPatterns.forEach(pattern => {
-    const matches = content.matchAll(pattern);
-    for (const match of matches) {
-      const concept = match[1]?.trim();
-      if (concept && concept.length > 3 && concept.length < 40) {
-        concepts.add(concept);
+  if (bullets.length < 5) {
+    conceptPatterns.forEach(pattern => {
+      const matches = content.matchAll(pattern);
+      for (const match of matches) {
+        const concept = match[1]?.trim();
+        if (concept && concept.length > 3 && concept.length < 40) {
+          concepts.add(concept);
+        }
       }
-    }
-  });
+    });
+  }
 
   return {
     text: content,
-    concepts: Array.from(concepts).slice(0, 6)
+    concepts: Array.from(concepts).slice(0, 6),
+    bullets: bullets.length > 0 ? bullets : undefined
   };
 }
 
@@ -99,7 +108,7 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                     ) : (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full">
                         <BookOpen className="size-3.5 text-amber-600" />
-                        <span className="text-xs font-semibtext-amber-700">Sacred Texts</span>
+                        <span className="text-xs font-semibold text-amber-700">Sacred Texts</span>
                       </div>
                     )}
                     {message.confidence !== undefined && !message.isAI && (
@@ -109,13 +118,38 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                     )}
                   </div>
                 )}
-                {/* Concept map for AI responses */}
-                {parsed && parsed.concepts && parsed.concepts.length > 3 && (
+                {/* Bullet points for AI synthesis */}
+                {parsed && parsed.bullets && parsed.bullets.length > 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                  >
+                    {parsed.bullets.map((bullet, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className="flex gap-3 items-start"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0"></div>
+                        <span className="text-sm text-slate-800 leading-relaxed">{bullet}</span>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : (
+                  <div className={`text-sm leading-relaxed ${message.type === 'user' ? 'text-white' : 'text-slate-800'}`}>
+                    {message.content}
+                  </div>
+                )}
+                {/* Concept map for non-bullet AI responses */}
+                {parsed && parsed.concepts && parsed.concepts.length > 3 && !parsed.bullets && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200/50"
+                    className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200/50"
                   >
                     <div className="flex items-center gap-2 mb-3">
                       <Network className="size-4 text-purple-600" />
@@ -136,11 +170,6 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                     </div>
                   </motion.div>
                 )}
-
-                <div className={`text-sm leading-relaxed ${message.type === 'user' ? 'text-white' : 'text-slate-800'
-                  }`}>
-                  {message.content}
-                </div>
 
                 {message.reference && (
                   <motion.div
