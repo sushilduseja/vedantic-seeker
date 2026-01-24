@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, ArrowLeft, Plus } from 'lucide-react';
+import { BookOpen, ArrowLeft, Plus, Key, Sparkles, Network } from 'lucide-react';
 import { findRelevantContent } from '@/app/components/QuestionMapper';
 import { HeroSection } from '@/app/components/HeroSection';
 import { ConversationView, type Message } from '@/app/components/ConversationView';
 import { AutocompleteInput } from '@/app/components/AutocompleteInput';
 import { QuickSuggestions } from '@/app/components/QuickSuggestions';
 import { SpiritualBackground } from '@/app/components/SpiritualBackground';
+import { groqService } from '@/app/services/GroqService';
 
 type View = 'hero' | 'conversation';
 
@@ -17,9 +18,21 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [pendingAIRequest, setPendingAIRequest] = useState<{
+    messageId: string;
+    question: string;
+    searchResults: any[];
+  } | null>(null);
 
   useEffect(() => {
     loadDiverseQuestions();
+    const envKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (envKey) {
+      groqService.setApiKey(envKey);
+      setAiEnabled(true);
+    }
   }, []);
 
   const loadDiverseQuestions = async () => {
@@ -51,23 +64,94 @@ export default function App() {
     }
   };
 
+  const getConversationContext = () => {
+    return messages
+      .slice(-4)
+      .map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+  };
+
+  const enhanceWithAI = async (
+    messageId: string,
+    question: string,
+    searchResults: any[]
+  ) => {
+    setIsLoadingAI(true);
+    
+    try {
+      const context = getConversationContext();
+      const aiResponse = await groqService.queryAI(question, searchResults, context);
+
+      if (!aiResponse.error || aiResponse.error === 'NO_API_KEY') {
+        setMessages(prev => {
+          const existingIndex = prev.findIndex(m => m.id === `${messageId}-ai`);
+          const aiMessage: Message = {
+            id: `${messageId}-ai`,
+            type: 'assistant',
+            content: aiResponse.content,
+            reference: aiResponse.sourceVerses?.join(', '),
+            timestamp: new Date(),
+            isAI: true
+          };
+
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = aiMessage;
+            return updated;
+          } else {
+            return [...prev, aiMessage];
+          }
+        });
+      } else {
+        setMessages(prev => [...prev, {
+          id: `${messageId}-ai-error`,
+          type: 'assistant',
+          content: aiResponse.content,
+          timestamp: new Date(),
+          isAI: true
+        }]);
+      }
+    } catch (error) {
+      console.error('AI enhancement error:', error);
+      setMessages(prev => [...prev, {
+        id: `${messageId}-ai-error`,
+        type: 'assistant',
+        content: "I encountered a difficulty accessing deeper insights. The scriptural teaching above offers authentic guidance.",
+        timestamp: new Date(),
+        isAI: true
+      }]);
+    } finally {
+      setIsLoadingAI(false);
+      setPendingAIRequest(null);
+    }
+  };
+
+  const requestAIInsight = () => {
+    if (pendingAIRequest) {
+      enhanceWithAI(
+        pendingAIRequest.messageId,
+        pendingAIRequest.question,
+        pendingAIRequest.searchResults
+      );
+    }
+  };
+
   const buildContextualQuery = (currentQuestion: string, messageHistory: Message[]): string => {
     const lowerQuestion = currentQuestion.toLowerCase();
     
-    // Detect follow-up question types
     const isMoreInfo = /tell me more|elaborate|explain more|go deeper|continue/i.test(lowerQuestion);
     const isPractice = /how.*practice|daily|implement|apply/i.test(lowerQuestion);
     const isExample = /example|illustration|story|demonstrate/i.test(lowerQuestion);
     const isObstacle = /obstacle|challenge|difficult|problem/i.test(lowerQuestion);
     
-    // Get last assistant message topic
     const lastAssistant = messageHistory
       .filter(m => m.type === 'assistant')
       .slice(-1)[0];
     
     if (!lastAssistant) return currentQuestion;
     
-    // Extract core topic from last response
     const topicWords = lastAssistant.content
       .toLowerCase()
       .split(/\W+/)
@@ -75,7 +159,6 @@ export default function App() {
       .filter(word => !['these', 'those', 'their', 'there', 'about', 'would', 'should', 'could', 'which', 'through'].includes(word))
       .slice(0, 3);
     
-    // Build contextual query based on follow-up type
     if (isMoreInfo) {
       return `${topicWords.join(' ')} deeper explanation advanced understanding`;
     } else if (isPractice) {
@@ -98,12 +181,15 @@ export default function App() {
     setMessages([]);
     setQuestion('');
     setUsedQuestionIds(new Set());
+    setPendingAIRequest(null);
+    setIsLoadingAI(false);
   }, []);
 
   const handleFollowUpSubmit = useCallback(async (followUpQuestion: string) => {
     if (!followUpQuestion.trim() || isLoading) return;
 
     setIsLoading(true);
+    setPendingAIRequest(null);
 
     try {
       const searchQuery = buildContextualQuery(followUpQuestion, messages);
@@ -116,18 +202,38 @@ export default function App() {
         const topResult = resultsToUse[0];
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
         
+        const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: messageId,
           type: 'assistant',
           content: topResult.description,
           reference: topResult.reference,
-          timestamp: new Date()
+          timestamp: new Date(),
+          confidence: topResult.confidence
         };
         
         setMessages(prev => [...prev, assistantMessage]);
+
+        const confidence = topResult.confidence || 0;
+        
+        if (aiEnabled) {
+          if (confidence < 30) {
+            setTimeout(() => {
+              enhanceWithAI(messageId, followUpQuestion, [topResult]);
+            }, 100);
+          } else if (confidence >= 30 && confidence <= 60) {
+            setPendingAIRequest({
+              messageId,
+              question: followUpQuestion,
+              searchResults: resultsToUse.slice(0, 3)
+            });
+          }
+        }
+        
       } else {
+        const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: messageId,
           type: 'assistant',
           content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
           timestamp: new Date()
@@ -146,7 +252,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, usedQuestionIds]);
+  }, [messages, isLoading, usedQuestionIds, aiEnabled]);
 
   const handleSubmit = useCallback(async () => {
     if (!question.trim() || isLoading) return;
@@ -162,6 +268,7 @@ export default function App() {
     const currentQuestion = question;
     setQuestion('');
     setIsLoading(true);
+    setPendingAIRequest(null);
 
     try {
       const searchQuery = messages.length > 0 
@@ -170,35 +277,57 @@ export default function App() {
 
       const allResults = await findRelevantContent(searchQuery);
       
-      // Filter out already used questions
       const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
-      
-      // Use fresh result if available, otherwise take next best from all results
       const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
       
       if (resultsToUse.length > 0) {
         const topResult = resultsToUse[0];
         
-        // Mark this question as used
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
         
+        const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: messageId,
           type: 'assistant',
           content: topResult.description,
           reference: topResult.reference,
-          timestamp: new Date()
+          timestamp: new Date(),
+          confidence: topResult.confidence
         };
         
         setMessages(prev => [...prev, assistantMessage]);
+
+        const confidence = topResult.confidence || 0;
+        
+        if (aiEnabled) {
+          if (confidence < 30) {
+            setTimeout(() => {
+              enhanceWithAI(messageId, currentQuestion, [topResult]);
+            }, 100);
+          } else if (confidence >= 30 && confidence <= 60) {
+            setPendingAIRequest({
+              messageId,
+              question: currentQuestion,
+              searchResults: resultsToUse.slice(0, 3)
+            });
+          }
+        }
+        
       } else {
+        const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: messageId,
           type: 'assistant',
           content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
           timestamp: new Date()
         };
         setMessages(prev => [...prev, assistantMessage]);
+
+        if (aiEnabled) {
+          setTimeout(() => {
+            enhanceWithAI(messageId, currentQuestion, []);
+          }, 100);
+        }
       }
     } catch (error) {
       console.error('Search failed:', error);
@@ -212,7 +341,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [question, isLoading, messages, usedQuestionIds]);
+  }, [question, isLoading, messages, usedQuestionIds, aiEnabled]);
 
   const initialSuggestions = [
     "Who am I beyond this body?",
@@ -292,15 +421,28 @@ export default function App() {
                       </div>
                     </motion.button>
 
-                    <motion.button
-                      onClick={handleGoHome}
-                      whileHover={{ scale: 1.05, x: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
-                    >
-                      <ArrowLeft className="size-4" />
-                      <span className="hidden sm:inline">Back to Home</span>
-                    </motion.button>
+                    <div className="flex items-center gap-2">
+                      {aiEnabled && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-green-50 text-green-700"
+                        >
+                          <Sparkles className="size-4" />
+                          <span className="hidden sm:inline">AI Enhanced</span>
+                        </motion.div>
+                      )}
+
+                      <motion.button
+                        onClick={handleGoHome}
+                        whileHover={{ scale: 1.05, x: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                      >
+                        <ArrowLeft className="size-4" />
+                        <span className="hidden sm:inline">Back to Home</span>
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </motion.header>
@@ -365,6 +507,33 @@ export default function App() {
                 ) : (
                   <div className="space-y-6">
                     <ConversationView messages={messages} isLoading={isLoading} />
+                    
+                    {pendingAIRequest && !isLoadingAI && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-center"
+                      >
+                        <button
+                          onClick={requestAIInsight}
+                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                        >
+                          <Sparkles className="size-4" />
+                          <span className="text-sm font-medium">Get AI Synthesis</span>
+                        </button>
+                      </motion.div>
+                    )}
+
+                    {isLoadingAI && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-center items-center gap-2 text-sm text-slate-600"
+                      >
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
+                        <span>Synthesizing deeper wisdom...</span>
+                      </motion.div>
+                    )}
                     
                     {!isLoading && messages.length > 0 && (
                       <QuickSuggestions
