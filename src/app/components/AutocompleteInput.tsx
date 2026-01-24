@@ -21,13 +21,39 @@ export function AutocompleteInput({
 }: AutocompleteInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showAbove, setShowAbove] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Filter suggestions based on input
   const filteredSuggestions = suggestions.filter(s =>
     s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase()
   );
+
+  // Detect if input is in bottom half of viewport
+  useEffect(() => {
+    const checkPosition = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        // Show above if less than 300px space below and more space above
+        setShowAbove(spaceBelow < 300 && spaceAbove > spaceBelow);
+      }
+    };
+
+    checkPosition();
+    window.addEventListener('scroll', checkPosition);
+    window.addEventListener('resize', checkPosition);
+
+    return () => {
+      window.removeEventListener('scroll', checkPosition);
+      window.removeEventListener('resize', checkPosition);
+    };
+  }, [showSuggestions]);
 
   useEffect(() => {
     setShowSuggestions(value.length > 0 && filteredSuggestions.length > 0);
@@ -74,7 +100,7 @@ export function AutocompleteInput({
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <div className="relative group">
         <input
           ref={inputRef}
@@ -103,11 +129,13 @@ export function AutocompleteInput({
         {showSuggestions && (
           <motion.div
             ref={suggestionsRef}
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: showAbove ? 10 : -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: showAbove ? 10 : -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 w-full mt-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-2xl overflow-hidden"
+            className={`absolute z-50 w-full bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-2xl overflow-hidden ${
+              showAbove ? 'bottom-full mb-2' : 'top-full mt-2'
+            }`}
           >
             <div className="p-2 space-y-1 max-h-80 overflow-y-auto">
               {filteredSuggestions.map((suggestion, index) => (

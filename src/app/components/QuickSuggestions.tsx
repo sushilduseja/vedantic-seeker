@@ -1,10 +1,18 @@
 import { motion } from 'motion/react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, BookMarked, Shield, Lightbulb } from 'lucide-react';
 
 interface QuickSuggestionsProps {
   suggestions: string[];
   onSelect: (suggestion: string) => void;
 }
+
+const getIconForSuggestion = (suggestion: string) => {
+  const lower = suggestion.toLowerCase();
+  if (lower.includes('more') || lower.includes('elaborate')) return BookMarked;
+  if (lower.includes('practice') || lower.includes('daily')) return Lightbulb;
+  if (lower.includes('obstacle') || lower.includes('challenge')) return Shield;
+  return MessageCircle;
+};
 
 export function QuickSuggestions({ suggestions, onSelect }: QuickSuggestionsProps) {
   return (
@@ -16,26 +24,32 @@ export function QuickSuggestions({ suggestions, onSelect }: QuickSuggestionsProp
     >
       <div className="flex items-center gap-2 text-sm text-slate-600">
         <MessageCircle className="size-4" />
-        <span>Try asking:</span>
+        <span>Continue exploring:</span>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {suggestions.map((suggestion, index) => (
-          <motion.button
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onSelect(suggestion)}
-            className="group text-left p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl hover:border-amber-300 hover:shadow-lg transition-all"
-          >
-            <span className="text-sm text-slate-700 group-hover:text-amber-900 transition-colors">
-              {suggestion}
-            </span>
-          </motion.button>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {suggestions.map((suggestion, index) => {
+          const Icon = getIconForSuggestion(suggestion);
+          return (
+            <motion.button
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelect(suggestion)}
+              className="group text-left p-4 bg-gradient-to-br from-white to-amber-50/30 backdrop-blur-sm border border-slate-200 rounded-xl hover:border-amber-300 hover:shadow-lg transition-all flex items-start gap-3"
+            >
+              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-200 transition-colors">
+                <Icon className="size-4 text-amber-700" />
+              </div>
+              <span className="text-sm text-slate-700 group-hover:text-amber-900 transition-colors flex-1">
+                {suggestion}
+              </span>
+            </motion.button>
+          );
+        })}
       </div>
     </motion.div>
   );

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, ArrowLeft, Plus } from 'lucide-react';
 import { findRelevantContent } from '@/app/components/QuestionMapper';
@@ -10,50 +10,97 @@ import { SpiritualBackground } from '@/app/components/SpiritualBackground';
 
 type View = 'hero' | 'conversation';
 
+interface ConversationContext {
+  lastTopic: string;
+  lastKeywords: string[];
+  lastQuestionId?: string;
+}
+
 export default function App() {
   const [view, setView] = useState<View>('hero');
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [context, setContext] = useState<ConversationContext>({ lastTopic: '', lastKeywords: [] });
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
 
-  // All possible questions for autocomplete
-  const allQuestions = [
-    "Who am I?",
-    "What is the nature of the soul?",
-    "What is bhakti?",
-    "What is the difference between bhakti and Veda?",
-    "What is my purpose in life?",
-    "How do I find inner peace?",
-    "What happens after death?",
-    "What is karma?",
-    "How can I overcome suffering?",
-    "What is meditation?",
-    "What is the difference between the body and soul?",
-    "What is maya?",
-    "How do I surrender to God?",
-    "What are the three modes of nature?",
-    "What is true knowledge?",
-    "How do I practice detachment?",
-    "What is the path to enlightenment?",
-    "What is the Supreme Truth?",
-    "How do I control my mind?",
-    "What is the meaning of Om?"
-  ];
+  // Load diverse questions on mount
+  useEffect(() => {
+    loadDiverseQuestions();
+  }, []);
 
-  // Quick suggestions for different contexts
-  const initialSuggestions = [
-    "Who am I?",
-    "What is bhakti?",
-    "What is my purpose?",
-    "How do I find inner peace?"
-  ];
+  const loadDiverseQuestions = async () => {
+    try {
+      const response = await fetch('/data/srimad-bhagavatam.json');
+      const data = await response.json();
+      
+      // Get diverse questions across difficulties and themes
+      const foundational = data.questions
+        .filter((q: any) => q.difficulty === 'foundational')
+        .sort((a: any, b: any) => b.popularity - a.popularity)
+        .slice(0, 5);
+      
+      const intermediate = data.questions
+        .filter((q: any) => q.difficulty === 'intermediate')
+        .sort((a: any, b: any) => b.popularity - a.popularity)
+        .slice(0, 5);
+      
+      const advanced = data.questions
+        .filter((q: any) => q.difficulty === 'advanced')
+        .sort((a: any, b: any) => b.popularity - a.popularity)
+        .slice(0, 3);
+      
+      const allQuestions = [...foundational, ...intermediate, ...advanced]
+        .map((q: any) => q.question);
+      
+      setSuggestedQuestions(allQuestions);
+    } catch (error) {
+      console.error('Failed to load questions:', error);
+    }
+  };
 
-  const followUpSuggestions = [
-    "Tell me more about this",
-    "How can I practice this daily?",
-    "What are the obstacles I might face?",
-    "Can you explain this with an example?"
-  ];
+  const extractKeywords = (text: string): string[] => {
+    const normalized = text.toLowerCase();
+    const stopWords = new Set(['the', 'is', 'are', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'this', 'that', 'these', 'those', 'a', 'an']);
+    
+    // Extract meaningful words
+    const words = normalized
+      .split(/\W+/)
+      .filter(word => word.length > 3 && !stopWords.has(word));
+    
+    // Remove duplicates and return top 8
+    return [...new Set(words)].slice(0, 8);
+  };
+
+  const isFollowUpQuestion = (query: string): boolean => {
+    const followUpPatterns = [
+      /^tell me more/i,
+      /^how (?:can|do) (?:i|we) practice/i,
+      /^what (?:are|is) (?:the )?obstacles?/i,
+      /^(?:can you )?explain.*(?:with|using) (?:an? )?example/i,
+      /^more (?:about|on|regarding)/i,
+      /^elaborate/i,
+      /^(?:give|show) me (?:an? )?example/i,
+      /^how (?:to|can)/i
+    ];
+    return followUpPatterns.some(pattern => pattern.test(query));
+  };
+
+  const buildContextualQuery = (originalQuery: string, ctx: ConversationContext): string => {
+    if (originalQuery.toLowerCase().includes('practice')) {
+      return `how to practice ${ctx.lastTopic} daily spiritual practice`;
+    }
+    if (originalQuery.toLowerCase().includes('obstacle')) {
+      return `obstacles challenges difficulties ${ctx.lastTopic}`;
+    }
+    if (originalQuery.toLowerCase().includes('example')) {
+      return `example illustration story ${ctx.lastTopic}`;
+    }
+    if (originalQuery.toLowerCase().includes('more')) {
+      return `detailed explanation ${ctx.lastTopic} ${ctx.lastKeywords.join(' ')}`;
+    }
+    return `${originalQuery} ${ctx.lastKeywords.slice(0, 3).join(' ')}`;
+  };
 
   const handleGetStarted = useCallback(() => {
     setView('conversation');
@@ -63,31 +110,47 @@ export default function App() {
     setView('hero');
     setMessages([]);
     setQuestion('');
+    setContext({ lastTopic: '', lastKeywords: [] });
   }, []);
 
-  const handleSubmit = useCallback(() => {
-  if (!question.trim() || isLoading) return;
+  const handleSubmit = useCallback(async () => {
+    if (!question.trim() || isLoading) return;
 
-  // Add user message
-  const userMessage: Message = {
-    id: Date.now().toString(),
-    type: 'user',
-    content: question,
-    timestamp: new Date()
-  };
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: question,
+      timestamp: new Date()
+    };
 
-  setMessages(prev => [...prev, userMessage]);
-  const currentQuestion = question;
-  setQuestion('');
-  setIsLoading(true);
+    setMessages(prev => [...prev, userMessage]);
+    const currentQuestion = question;
+    setQuestion('');
+    setIsLoading(true);
 
-  // Use async/await properly
-  (async () => {
     try {
-      const results = await findRelevantContent(currentQuestion);
+      let searchQuery = currentQuestion;
       
-      if (results.length > 0 && results[0]) {
-        const topResult = results[0];
+      // Enhance query with context for follow-ups
+      if (isFollowUpQuestion(currentQuestion) && context.lastKeywords.length > 0) {
+        searchQuery = buildContextualQuery(currentQuestion, context);
+        console.log('Contextual query:', searchQuery);
+      }
+
+      const results = await findRelevantContent(searchQuery);
+      
+      if (results.length > 0) {
+        // For follow-ups, try to find a different answer than the last one
+        let topResult = results[0];
+        
+        if (context.lastQuestionId && results.length > 1) {
+          // Find first result that's different from last question
+          const differentResult = results.find(r => r.questionId !== context.lastQuestionId);
+          if (differentResult) {
+            topResult = differentResult;
+          }
+        }
+        
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
@@ -95,13 +158,21 @@ export default function App() {
           reference: topResult.reference,
           timestamp: new Date()
         };
+        
         setMessages(prev => [...prev, assistantMessage]);
+        
+        // Update context for future follow-ups
+        const keywords = extractKeywords(topResult.description + ' ' + topResult.title);
+        setContext({
+          lastTopic: topResult.title.toLowerCase(),
+          lastKeywords: keywords,
+          lastQuestionId: topResult.questionId
+        });
       } else {
-        // No results found - provide helpful fallback
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
-          content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation or may be addressed differently in Vedantic philosophy. Could you rephrase your question or ask about related concepts like the nature of the soul, dharma, or the path to liberation?",
+          content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
           timestamp: new Date()
         };
         setMessages(prev => [...prev, assistantMessage]);
@@ -111,22 +182,33 @@ export default function App() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "I apologize, but I encountered an error searching the teachings. Please try rephrasing your question or ask something fundamental like 'Who am I?' or 'What is the purpose of life?'",
+        content: "I encountered an error searching the teachings. Please try rephrasing your question or ask something fundamental like 'Who am I?' or 'What is the purpose of life?'",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
-  })();
-}, [question, isLoading]);
+  }, [question, isLoading, context]);
+
+  const initialSuggestions = [
+    "Who am I beyond this body?",
+    "What is the ultimate purpose of life?",
+    "What is bhakti-yoga?",
+    "How can I find inner peace?"
+  ];
+
+  const followUpSuggestions = [
+    "Tell me more about this",
+    "How can I practice this daily?",
+    "What are the obstacles I might face?",
+    "Can you explain this with an example?"
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 relative overflow-hidden">
-      {/* Animated spiritual background */}
       <SpiritualBackground />
 
-      {/* Content */}
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {view === 'hero' ? (
@@ -148,7 +230,6 @@ export default function App() {
               transition={{ duration: 0.5 }}
               className="min-h-screen flex flex-col"
             >
-              {/* Header */}
               <motion.header
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
@@ -189,14 +270,13 @@ export default function App() {
                 </div>
               </motion.header>
 
-              {/* Main conversation area */}
               <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
                 {messages.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="max-w-2xl mx-auto"
+                    className="max-w-3xl mx-auto"
                   >
                     <div className="text-center mb-12">
                       <motion.div
@@ -225,13 +305,27 @@ export default function App() {
                       </motion.p>
                     </div>
 
-                    <QuickSuggestions
-                      suggestions={initialSuggestions}
-                      onSelect={(q) => {
-                        setQuestion(q);
-                        setTimeout(handleSubmit, 100);
-                      }}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                      {suggestedQuestions.map((q, idx) => (
+                        <motion.button
+                          key={idx}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.6 + idx * 0.05, duration: 0.4 }}
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setQuestion(q);
+                            setTimeout(handleSubmit, 100);
+                          }}
+                          className="group text-left p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl hover:border-amber-300 hover:shadow-lg transition-all"
+                        >
+                          <span className="text-sm text-slate-700 group-hover:text-amber-900 transition-colors line-clamp-2">
+                            {q}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
                   </motion.div>
                 ) : (
                   <div className="space-y-6">
@@ -249,7 +343,6 @@ export default function App() {
                 )}
               </main>
 
-              {/* Input area */}
               <motion.div
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
@@ -262,7 +355,7 @@ export default function App() {
                     onChange={setQuestion}
                     onSubmit={handleSubmit}
                     placeholder="Ask a question or continue the conversation..."
-                    suggestions={allQuestions}
+                    suggestions={suggestedQuestions}
                     disabled={isLoading}
                   />
                   
@@ -289,7 +382,6 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* Footer - only show on hero */}
       {view === 'hero' && (
         <motion.footer
           initial={{ opacity: 0 }}
