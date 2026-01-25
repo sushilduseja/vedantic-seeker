@@ -39,25 +39,25 @@ export default function App() {
     try {
       const response = await fetch('/data/srimad-bhagavatam.json');
       const data = await response.json();
-      
+
       const foundational = data.questions
         .filter((q: any) => q.difficulty === 'foundational')
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 5);
-      
+
       const intermediate = data.questions
         .filter((q: any) => q.difficulty === 'intermediate')
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 5);
-      
+
       const advanced = data.questions
         .filter((q: any) => q.difficulty === 'advanced')
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 3);
-      
+
       const allQuestions = [...foundational, ...intermediate, ...advanced]
         .map((q: any) => q.question);
-      
+
       setSuggestedQuestions(allQuestions);
     } catch (error) {
       console.error('Failed to load questions:', error);
@@ -79,7 +79,7 @@ export default function App() {
     searchResults: any[]
   ) => {
     setIsLoadingAI(true);
-    
+
     try {
       const context = getConversationContext();
       const aiResponse = await groqService.queryAI(question, searchResults, context);
@@ -140,25 +140,25 @@ export default function App() {
 
   const buildContextualQuery = (currentQuestion: string, messageHistory: Message[]): string => {
     const lowerQuestion = currentQuestion.toLowerCase();
-    
+
     const isMoreInfo = /tell me more|elaborate|explain more|go deeper|continue/i.test(lowerQuestion);
     const isPractice = /how.*practice|daily|implement|apply/i.test(lowerQuestion);
     const isExample = /example|illustration|story|demonstrate/i.test(lowerQuestion);
     const isObstacle = /obstacle|challenge|difficult|problem/i.test(lowerQuestion);
-    
+
     const lastAssistant = messageHistory
       .filter(m => m.type === 'assistant')
       .slice(-1)[0];
-    
+
     if (!lastAssistant) return currentQuestion;
-    
+
     const topicWords = lastAssistant.content
       .toLowerCase()
       .split(/\W+/)
       .filter(word => word.length > 4)
       .filter(word => !['these', 'those', 'their', 'there', 'about', 'would', 'should', 'could', 'which', 'through'].includes(word))
       .slice(0, 3);
-    
+
     if (isMoreInfo) {
       return `${topicWords.join(' ')} deeper explanation advanced understanding`;
     } else if (isPractice) {
@@ -194,14 +194,14 @@ export default function App() {
     try {
       const searchQuery = buildContextualQuery(followUpQuestion, messages);
       const allResults = await findRelevantContent(searchQuery);
-      
+
       const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
       const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
-      
+
       if (resultsToUse.length > 0) {
         const topResult = resultsToUse[0];
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
-        
+
         const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
           id: messageId,
@@ -211,11 +211,11 @@ export default function App() {
           timestamp: new Date(),
           confidence: topResult.confidence
         };
-        
+
         setMessages(prev => [...prev, assistantMessage]);
 
         const confidence = topResult.confidence || 0;
-        
+
         if (aiEnabled) {
           if (confidence < 30) {
             setTimeout(() => {
@@ -229,7 +229,7 @@ export default function App() {
             });
           }
         }
-        
+
       } else {
         const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
@@ -271,20 +271,20 @@ export default function App() {
     setPendingAIRequest(null);
 
     try {
-      const searchQuery = messages.length > 0 
+      const searchQuery = messages.length > 0
         ? buildContextualQuery(currentQuestion, messages)
         : currentQuestion;
 
       const allResults = await findRelevantContent(searchQuery);
-      
+
       const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
       const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
-      
+
       if (resultsToUse.length > 0) {
         const topResult = resultsToUse[0];
-        
+
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
-        
+
         const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
           id: messageId,
@@ -294,11 +294,11 @@ export default function App() {
           timestamp: new Date(),
           confidence: topResult.confidence
         };
-        
+
         setMessages(prev => [...prev, assistantMessage]);
 
         const confidence = topResult.confidence || 0;
-        
+
         if (aiEnabled) {
           if (confidence < 30) {
             setTimeout(() => {
@@ -312,7 +312,7 @@ export default function App() {
             });
           }
         }
-        
+
       } else {
         const messageId = (Date.now() + 1).toString();
         const assistantMessage: Message = {
@@ -507,7 +507,7 @@ export default function App() {
                 ) : (
                   <div className="space-y-6">
                     <ConversationView messages={messages} isLoading={isLoading} />
-                    
+
                     {pendingAIRequest && !isLoadingAI && messages.filter(m => m.type === 'assistant').length >= 4 && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -534,22 +534,21 @@ export default function App() {
                         <span>Synthesizing deeper wisdom...</span>
                       </motion.div>
                     )}
-                    
+
                     {!isLoading && messages.length > 0 && (
                       <QuickSuggestions
                         suggestions={followUpSuggestions}
                         onSelect={(q) => {
-                          setQuestion(q);
-                          setTimeout(() => {
-                            const userMessage: Message = {
-                              id: Date.now().toString(),
-                              type: 'user',
-                              content: q,
-                              timestamp: new Date()
-                            };
-                            setMessages(prev => [...prev, userMessage]);
-                            handleFollowUpSubmit(q);
-                          }, 50);
+                          setQuestion('');
+
+                          const userMessage: Message = {
+                            id: Date.now().toString(),
+                            type: 'user',
+                            content: q,
+                            timestamp: new Date()
+                          };
+                          setMessages(prev => [...prev, userMessage]);
+                          handleFollowUpSubmit(q);
                         }}
                       />
                     )}
@@ -572,7 +571,7 @@ export default function App() {
                     suggestions={suggestedQuestions}
                     disabled={isLoading}
                   />
-                  
+
                   {messages.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -613,7 +612,7 @@ export default function App() {
           </div>
         </motion.footer>
       )}
-      
+
       {view === 'conversation' && (
         <motion.footer
           initial={{ opacity: 0 }}

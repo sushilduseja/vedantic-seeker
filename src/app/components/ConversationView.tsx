@@ -23,7 +23,7 @@ function parseAIContent(content: string): { text: string; concepts?: string[]; b
   const bullets = Array.from(content.matchAll(bulletRegex))
     .map(match => match[1]?.trim())
     .filter((line): line is string => !!line && line.length > 0);
-  
+
   // Extract key concepts for visualization (only if few bullets found)
   const conceptPatterns = [
     /understanding ([\w\s-]+)/gi,
@@ -54,9 +54,17 @@ function parseAIContent(content: string): { text: string; concepts?: string[]; b
 
 export function ConversationView({ messages, isLoading }: ConversationViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isLoading) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Small delay to ensure render is complete
+      setTimeout(() => {
+        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   }, [messages, isLoading]);
 
   if (messages.length === 0) {
@@ -77,6 +85,7 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              ref={index === messages.length - 1 ? lastMessageRef : null}
             >
               {message.type === 'assistant' && (
                 <motion.div
@@ -94,8 +103,8 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                 animate={{ scale: 1 }}
                 transition={{ delay: index * 0.05 + 0.3 }}
                 className={`max-w-[80%] ${message.type === 'user'
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl rounded-tr-md'
-                    : 'bg-white border border-slate-200 rounded-3xl rounded-tl-md shadow-md'
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl rounded-tr-md'
+                  : 'bg-white border border-slate-200 rounded-3xl rounded-tl-md shadow-md'
                   } p-5`}
               >
                 {message.type === 'assistant' && (
