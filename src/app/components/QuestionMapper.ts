@@ -44,27 +44,51 @@ interface BhagavatamData {
   }>;
 }
 
-let cachedData: BhagavatamData | null = null;
+const cachedData: Record<string, BhagavatamData | null> = {
+  en: null,
+  hi: null
+};
 
-async function loadData(): Promise<BhagavatamData> {
-  if (cachedData) return cachedData;
+async function loadData(lang: 'en' | 'hi' = 'en'): Promise<BhagavatamData> {
+  if (cachedData[lang]) return cachedData[lang]!;
+
+  const filename = lang === 'hi' ? '/data/srimad-bhagavatam-hi.json' : '/data/srimad-bhagavatam.json';
 
   try {
-    const response = await fetch('/data/srimad-bhagavatam.json');
-    if (!response.ok) throw new Error('Failed to load data');
-    cachedData = await response.json();
-    return cachedData!;
+    const response = await fetch(filename);
+    if (!response.ok) throw new Error(`Failed to load data for ${lang}`);
+    
+    const text = await response.text();
+    console.log(`Fetched ${filename}, text length: ${text.length}, starts with: ${text.substring(0, 50)}`);
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error(`JSON parse failed for ${filename}. Ends with:`, text.substring(Math.max(0, text.length - 100)));
+      throw parseError;
+    }
+    
+    cachedData[lang] = data;
+    return cachedData[lang]!;
   } catch (error) {
-    console.error('Error loading Bhagavatam data:', error);
+    console.error(`Error loading Bhagavatam data (${lang}):`, error);
+    // Fallback to English if Hindi fails to load
+    if (lang === 'hi') {
+      console.log('Falling back to English data load');
+      return loadData('en');
+    }
     throw error;
   }
 }
+
+
 
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, ' ')
+    .replace(/[^\w\s-\u0900-\u097F]/g, ' ')
     .replace(/\s+/g, ' ');
 }
 
@@ -227,20 +251,20 @@ function formatSearchResult(
   };
 }
 
-export async function findRelevantContent(query: string): Promise<SearchResult[]> {
+export async function findRelevantContent(query: string, lang: 'en' | 'hi' = 'en'): Promise<SearchResult[]> {
   if (!query || query.trim().length === 0) {
     return [];
   }
 
   try {
-    const data = await loadData();
+    const data = await loadData(lang);
 
     // Extract and expand keywords
     const keywords = extractKeywords(query);
     if (keywords.length === 0) {
       // Return popular foundational questions
       return data.questions
-        .filter(q => q.difficulty === 'foundational')
+        .filter(q => q.difficulty === 'foundational' || q.difficulty === 'मूलभूत')
         .sort((a, b) => b.popularity - a.popularity)
         .slice(0, 5)
         .map(q => formatSearchResult(q, data.verses, 50));
@@ -260,8 +284,34 @@ export async function findRelevantContent(query: string): Promise<SearchResult[]
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    // If no good matches, return most popular questions
+    // If no good matches
     if (topResults.length === 0) {
+      // Try fallback to English only if in Hindi mode
+      if (lang === 'hi') {
+        try {
+          // Load English data directly to avoid recursion
+          const enData = await loadData('en');
+          const enKeywords = extractKeywords(query);
+          const enExpandedKeywords = expandSynonyms(enKeywords, enData.synonyms);
+          const enScoredQuestions = enData.questions.map(question => ({
+            question,
+            score: scoreQuestion(query, question, enExpandedKeywords, enData.searchIndex)
+          }));
+          const enTopResults = enScoredQuestions
+            .filter(sq => sq.score > 1)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+          if (enTopResults.length > 0) {
+            console.log('Using English fallback for Hindi query:', query);
+            return enTopResults.map(({ question, score }) =>
+              formatSearchResult(question, enData.verses, score)
+            );
+          }
+        } catch (fallbackError) {
+          console.error('Fallback to English data failed:', fallbackError);
+        }
+      }
+
       return data.questions
         .sort((a, b) => b.popularity - a.popularity)
         .slice(0, 5)

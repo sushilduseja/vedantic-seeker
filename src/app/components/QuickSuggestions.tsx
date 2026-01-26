@@ -1,20 +1,26 @@
 import { motion } from 'motion/react';
 import { MessageCircle, BookMarked, Shield, Lightbulb } from 'lucide-react';
+import { type Language, t } from '@/app/translations';
 
 interface QuickSuggestionsProps {
   suggestions: string[];
   onSelect: (suggestion: string) => void;
+  lang?: Language;
 }
 
 const getIconForSuggestion = (suggestion: string) => {
   const lower = suggestion.toLowerCase();
+  // English pattern matching
   if (lower.includes('more') || lower.includes('elaborate')) return BookMarked;
-  if (lower.includes('practice') || lower.includes('daily')) return Lightbulb;
-  if (lower.includes('obstacle') || lower.includes('challenge')) return Shield;
+  if (lower.includes('practice') || lower.includes('daily') || lower.includes('अभ्यास')) return Lightbulb;
+  if (lower.includes('obstacle') || lower.includes('challenge') || lower.includes('बाधा')) return Shield;
+  // Hindi pattern matching
+  if (lower.includes('बताएं') || lower.includes('कहते')) return BookMarked;
+  if (lower.includes('तकनीकें') || lower.includes('अनुप्रयोग')) return Lightbulb;
   return MessageCircle;
 };
 
-export function QuickSuggestions({ suggestions, onSelect }: QuickSuggestionsProps) {
+export function QuickSuggestions({ suggestions, onSelect, lang = 'en' }: QuickSuggestionsProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -24,7 +30,7 @@ export function QuickSuggestions({ suggestions, onSelect }: QuickSuggestionsProp
     >
       <div className="flex items-center gap-2 text-sm text-slate-600">
         <MessageCircle className="size-4" />
-        <span>Continue exploring:</span>
+        <span>{t(lang, 'continueExploring')}</span>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

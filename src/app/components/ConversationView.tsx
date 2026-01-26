@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, BookOpen, Loader2, Sparkles, Network } from 'lucide-react';
+import { type Language, t } from '@/app/translations';
 
 export interface Message {
   id: string;
@@ -15,6 +16,7 @@ export interface Message {
 interface ConversationViewProps {
   messages: Message[];
   isLoading: boolean;
+  lang?: Language;
 }
 
 function parseAIContent(content: string): { text: string; concepts?: string[]; bullets?: string[] } {
@@ -52,7 +54,7 @@ function parseAIContent(content: string): { text: string; concepts?: string[]; b
   };
 }
 
-export function ConversationView({ messages, isLoading }: ConversationViewProps) {
+export function ConversationView({ messages, isLoading, lang = 'en' }: ConversationViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
@@ -85,7 +87,7 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              ref={index === messages.length - 1 ? lastMessageRef : null}
+              ref={lastMessageRef}
             >
               {message.type === 'assistant' && (
                 <motion.div
@@ -112,12 +114,12 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                     {message.isAI ? (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full">
                         <Sparkles className="size-3.5 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-700">AI Synthesis</span>
+                        <span className="text-xs font-semibold text-purple-700">{t(lang, 'aiSynthesis')}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full">
                         <BookOpen className="size-3.5 text-amber-600" />
-                        <span className="text-xs font-semibold text-amber-700">Sacred Texts</span>
+                        <span className="text-xs font-semibold text-amber-700">{t(lang, 'sacredTexts')}</span>
                       </div>
                     )}
                     {message.confidence !== undefined && !message.isAI && (
@@ -191,7 +193,7 @@ export function ConversationView({ messages, isLoading }: ConversationViewProps)
                       <BookOpen className="size-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="text-xs font-semibold text-slate-600 block mb-1">
-                          {message.isAI ? 'Source Verses' : 'Reference'}
+                          {message.isAI ? t(lang, 'sourceVerses') : t(lang, 'reference')}
                         </span>
                         <span className="text-xs text-slate-500 font-mono">
                           {message.reference}

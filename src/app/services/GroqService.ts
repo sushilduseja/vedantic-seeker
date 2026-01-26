@@ -5,6 +5,8 @@ export interface AIResponse {
   error?: string;
 }
 
+export type Language = 'en' | 'hi';
+
 interface CachedResponse {
   response: AIResponse;
   timestamp: number;
@@ -34,8 +36,12 @@ class GroqService {
     return this.apiKey;
   }
 
-  private hashQuestion(question: string, context?: string): string {
-    return `${question}:${context || ''}`.toLowerCase().replace(/\s+/g, ' ').trim();
+  private hashQuestion(question: string, context?: string, lang?: string): string {
+    return `${lang || 'en'}:${question}:${context || ''}`.toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+
+  private detectLanguage(text: string): Language {
+    return /[\u0900-\u097F]/.test(text) ? 'hi' : 'en';
   }
 
   private getCached(hash: string): AIResponse | null {
@@ -53,71 +59,66 @@ class GroqService {
     this.cache.set(hash, { response, timestamp: Date.now() });
   }
 
-  private buildSystemPrompt(): string {
-    return `You are a distinguished Vedantic scholar, well-versed in Srimad Bhagavatam and Bhagavad Gita.
+  private buildSystemPrompt(lang: Language = 'en'): string {
+    if (lang === 'hi') {
+      return `आप एक प्रतिष्ठित वैदांतिक विद्वान हैं। श्रीमद्भागवतम् से शिक्षाओं का संश्लेषण करें।
 
-RESPONSE FORMAT - BULLET SYNTHESIS:
-Present your entire response as a focused series of bullet points. Each bullet should be:
-- A complete thought or insight
-- Qualitative and descriptive (no numbers, statistics, or quantitative data)
-- Short, impactful phrases (5-15 words each)
-- Coherent and philosophically sound
-- Actionable or deeply contemplative
+महत्वपूर्ण नियम:
+- सभी प्रमुख अंतर्दृष्टि के लिए बुलेट पॉइंट (•) का उपयोग करें
+- प्रति उत्तर अधिकतम 5-7 बुलेट
+- प्रत्येक बुलेट: एक स्पष्ट विचार (8-15 शब्द)
+- श्लोक संदर्भ कोष्ठक में: (SB 1.2.10)
+- गुणात्मक गहराई, मात्रा नहीं
 
-Structure:
-1. Open with 1-2 thematic bullets capturing the essence
-2. Present 5-7 substantive bullets that synthesize teachings coherently
-3. Close with 1-2 integration bullets for practical application
+संरचना:
+प्रारंभ: एक गहन कथन (10-15 शब्द)
+मुख्य बुलेट: 3-5 आवश्यक अंतर्दृष्टि
+समापन: एक व्यावहारिक मार्गदर्शन
 
-GUIDELINES:
-- Ground all answers firmly in provided scriptural verses
-- Use bullet format ONLY - no paragraphs
-- Never speculate beyond given context
-- Maintain reverence while being accessible
-- Eliminate meta-commentary and filler
-- Keep language polished and compelling
-- Emphasize timeless wisdom
-- Each bullet stands alone yet builds the larger insight
-- Cite exact verse references integrated naturally into bullets
+सटीक रहें। गहन रहें। संक्षिप्त रहें।`;
+    }
 
-Your response should be a symphony of insights - each bullet note perfectly placed.`;
+    return `You are a distinguished Vedantic scholar. Synthesize teachings with precision.
+
+CRITICAL FORMATTING:
+- Use bullet points (•) for ALL insights
+- Max 5-7 bullets per response
+- Each bullet: 1 clear thought (8-15 words)
+- Cite verses in parentheses: (SB 1.2.10)
+- Qualitative depth over quantity
+
+STRUCTURE:
+Opening: One profound statement (10-15 words)
+Core Bullets: 3-5 essential insights
+Closing: One actionable guidance
+
+Be precise. Be profound. Be concise.`;
   }
 
   private buildUserPrompt(
     question: string,
     searchResults?: Array<{ description: string; reference: string }>,
-    conversationContext?: Array<{ role: string; content: string }>
+    conversationContext?: Array<{ role: string; content: string }>,
+    lang: Language = 'en'
   ): string {
-    let prompt = '';
+    let prompt = '【 Sacred Teachings 】\n\n';
 
-    if (searchResults && searchResults.length > 0) {
-      prompt += '═══ Sacred Teachings from Srimad Bhagavatam ═══\n\n';
-      searchResults.forEach((result, idx) => {
-        prompt += `【${result.reference}】\n${result.description}\n\n`;
-      });
-      prompt += '═══════════════════════════════════════\n\n';
+    searchResults?.forEach((r, i) =>
+      prompt += `${i + 1}. [${r.reference}]\n${r.description}\n\n`
+    );
+
+    if (conversationContext?.length) {
+      prompt += '\n【 Context 】\n';
+      conversationContext.slice(-2).forEach(m =>
+        prompt += `${m.role === 'user' ? 'Q' : 'A'}: ${m.content.slice(0, 100)}...\n`
+      );
     }
 
-    if (conversationContext && conversationContext.length > 0) {
-      prompt += '━━━ Previous Exchange ━━━\n\n';
-      conversationContext.slice(-2).forEach(msg => {
-        const label = msg.role === 'user' ? '🙏 Seeker' : '📿 Teacher';
-        prompt += `${label}: ${msg.content}\n\n`;
-      });
-      prompt += '━━━━━━━━━━━━━━━━━━━━━━\n\n';
-    }
+    prompt += `\n【 Question 】\n${question}\n\n`;
+    prompt += 'Synthesize into 5-7 bullets. Be profound and precise.';
 
-    prompt += `🙏 Current Question:\n${question}\n\n`;
-
-    if (searchResults && searchResults.length > 0) {
-      prompt += '📿 Please synthesize these teachings into a clear, spiritually enriching response. Structure your answer with:\n';
-      prompt += '1. A warm opening that acknowledges the depth of the question\n';
-      prompt += '2. Core teachings woven together coherently (2-3 paragraphs)\n';
-      prompt += '3. Practical guidance for spiritual practice when relevant\n';
-      prompt += '4. Gentle closing encouragement\n\n';
-      prompt += 'Always cite verse references when directly referencing teachings.';
-    } else {
-      prompt += '📿 Please offer wisdom on this spiritual question. If specific scriptural references would strengthen the answer, acknowledge this gracefully.';
+    if (lang === 'hi') {
+      prompt += '\n\n【अति महत्वपूर्ण】\nसंपूर्ण उत्तर हिंदी में दें। अंग्रेजी शिक्षाओं को हिंदी में अनुवाद करें। श्लोक संदर्भ (SB X.Y.Z) वैसे ही रखें। बुलेट पॉइंट • का उपयोग करें।';
     }
 
     return prompt;
@@ -126,17 +127,19 @@ Your response should be a symphony of insights - each bullet note perfectly plac
   async queryAI(
     question: string,
     searchResults?: Array<{ description: string; reference: string }>,
-    conversationContext?: Array<{ role: string; content: string }>
+    conversationContext?: Array<{ role: string; content: string }>,
+    langOverride?: Language
   ): Promise<AIResponse> {
     if (!this.apiKey) {
       return {
-        content: "AI synthesis requires configuration. The sacred teaching above provides authentic guidance from our curated knowledge base.",
+        content: 'AI synthesis requires configuration.',
         model: 'none',
         error: 'NO_API_KEY'
       };
     }
 
-    const cacheKey = this.hashQuestion(question, searchResults?.[0]?.description);
+    const lang = langOverride || this.detectLanguage(question);
+    const cacheKey = this.hashQuestion(question, searchResults?.[0]?.description, lang);
     const cached = this.getCached(cacheKey);
     if (cached) {
       return cached;
@@ -160,11 +163,11 @@ Your response should be a symphony of insights - each bullet note perfectly plac
             messages: [
               {
                 role: 'system',
-                content: this.buildSystemPrompt()
+                content: this.buildSystemPrompt(lang)
               },
               {
                 role: 'user',
-                content: this.buildUserPrompt(question, searchResults, conversationContext)
+                content: this.buildUserPrompt(question, searchResults, conversationContext, lang)
               }
             ],
             max_tokens: MAX_OUTPUT_TOKENS,
@@ -241,6 +244,34 @@ Your response should be a symphony of insights - each bullet note perfectly plac
 
   clearCache() {
     this.cache.clear();
+  }
+  async translateText(text: string, targetLang: 'hi' | 'en'): Promise<string> {
+    // Simple cache for translations
+    const cacheKey = `trans:${targetLang}:${text.slice(0, 50)}`;
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached.content;
+
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+      const response = await fetch(url);
+
+      if (!response.ok) return text;
+
+      const data = await response.json();
+      // Google Translate returns structure: [[["Translated", "Original", ...], ...], ...]
+      const translation = data[0].map((item: any) => item[0]).join('');
+
+      this.setCached(cacheKey, {
+        content: translation,
+        model: 'google-gtx',
+        sourceVerses: []
+      });
+
+      return translation;
+    } catch (e) {
+      console.error('Translation error:', e);
+      return text;
+    }
   }
 }
 

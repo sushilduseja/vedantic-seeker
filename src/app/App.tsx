@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, ArrowLeft, Plus, Key, Sparkles, Network } from 'lucide-react';
+import { BookOpen, ArrowLeft, Plus, Sparkles, Globe } from 'lucide-react';
 import { findRelevantContent } from '@/app/components/QuestionMapper';
 import { HeroSection } from '@/app/components/HeroSection';
 import { ConversationView, type Message } from '@/app/components/ConversationView';
@@ -8,6 +8,7 @@ import { AutocompleteInput } from '@/app/components/AutocompleteInput';
 import { QuickSuggestions } from '@/app/components/QuickSuggestions';
 import { SpiritualBackground } from '@/app/components/SpiritualBackground';
 import { groqService } from '@/app/services/GroqService';
+import { type Language, t } from '@/app/translations';
 
 type View = 'hero' | 'conversation';
 
@@ -25,42 +26,119 @@ export default function App() {
     question: string;
     searchResults: any[];
   } | null>(null);
+  const [lang, setLang] = useState<Language>('hi');
 
   useEffect(() => {
     loadDiverseQuestions();
+
     const envKey = import.meta.env.VITE_GROQ_API_KEY;
     if (envKey) {
       groqService.setApiKey(envKey);
       setAiEnabled(true);
     }
-  }, []);
+  }, [lang]);
 
   const loadDiverseQuestions = async () => {
+    console.log('loadDiverseQuestions called with lang:', lang);
     try {
-      const response = await fetch('/data/srimad-bhagavatam.json');
-      const data = await response.json();
+      // Always use English JSON for knowledge base (content is language-neutral)
+      const filename = '/data/srimad-bhagavatam.json';
+      console.log('Fetching:', filename);
+      const response = await fetch(filename);
+      if (!response.ok) throw new Error(`Failed to fetch ${filename}: ${response.status}`);
+
+      const text = await response.text();
+      console.log('Response text length:', text.length, 'First 100 chars:', text.substring(0, 100));
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error. Response starts with:', text.substring(0, 50), 'Response ends with:', text.substring(Math.max(0, text.length - 50)));
+        throw parseError;
+      }
+
+      if (!data.questions || !Array.isArray(data.questions)) {
+        throw new Error(`Invalid questions array in ${filename}`);
+      }
+      console.log('Loaded data with', data.questions.length, 'questions from', filename);
+
+      const getDifficulty = (level: 'foundational' | 'intermediate' | 'advanced') => {
+        if (lang === 'en') return level;
+        const map = {
+          'foundational': 'मूलभूत',
+          'intermediate': 'मध्यवर्ती',
+          'advanced': 'उन्नत'
+        };
+        return map[level];
+      };
 
       const foundational = data.questions
-        .filter((q: any) => q.difficulty === 'foundational')
+        .filter((q: any) => q.difficulty === getDifficulty('foundational'))
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 5);
+      console.log('Found foundational:', foundational.length, 'with difficulty:', getDifficulty('foundational'));
 
       const intermediate = data.questions
-        .filter((q: any) => q.difficulty === 'intermediate')
+        .filter((q: any) => q.difficulty === getDifficulty('intermediate'))
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 5);
+      console.log('Found intermediate:', intermediate.length);
 
       const advanced = data.questions
-        .filter((q: any) => q.difficulty === 'advanced')
+        .filter((q: any) => q.difficulty === getDifficulty('advanced'))
         .sort((a: any, b: any) => b.popularity - a.popularity)
         .slice(0, 3);
+      console.log('Found advanced:', advanced.length);
 
       const allQuestions = [...foundational, ...intermediate, ...advanced]
         .map((q: any) => q.question);
 
-      setSuggestedQuestions(allQuestions);
+      console.log('Setting suggested questions:', allQuestions.length);
+      if (allQuestions.length > 0) {
+        setSuggestedQuestions(allQuestions);
+      } else {
+        throw new Error('No questions found for current language');
+      }
     } catch (error) {
-      console.error('Failed to load questions:', error);
+      console.error('Failed to load questions for language', lang, ':', error);
+      if (lang === 'hi') {
+        try {
+          const response = await fetch('/data/srimad-bhagavatam.json');
+          if (!response.ok) throw new Error(`Fallback fetch failed: ${response.status}`);
+          const data = await response.json();
+          const foundational = data.questions
+            .filter((q: any) => q.difficulty === 'foundational')
+            .sort((a: any, b: any) => b.popularity - a.popularity)
+            .slice(0, 5);
+          const intermediate = data.questions
+            .filter((q: any) => q.difficulty === 'intermediate')
+            .sort((a: any, b: any) => b.popularity - a.popularity)
+            .slice(0, 5);
+          const advanced = data.questions
+            .filter((q: any) => q.difficulty === 'advanced')
+            .sort((a: any, b: any) => b.popularity - a.popularity)
+            .slice(0, 3);
+          const allQuestions = [...foundational, ...intermediate, ...advanced]
+            .map((q: any) => q.question);
+          if (allQuestions.length > 0) {
+            console.log('Using English fallback questions');
+            // Translate fallback questions to Hindi
+            const translatedQuestions = await Promise.all(
+              allQuestions.map(async (q) => {
+                try {
+                  return await groqService.translateText(q, 'hi');
+                } catch (e) {
+                  return q;
+                }
+              })
+            );
+            setSuggestedQuestions(translatedQuestions);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback to English questions failed:', fallbackError);
+        }
+      }
     }
   };
 
@@ -82,7 +160,7 @@ export default function App() {
 
     try {
       const context = getConversationContext();
-      const aiResponse = await groqService.queryAI(question, searchResults, context);
+      const aiResponse = await groqService.queryAI(question, searchResults, context, lang);
 
       if (!aiResponse.error || aiResponse.error === 'NO_API_KEY') {
         setMessages(prev => {
@@ -193,7 +271,7 @@ export default function App() {
 
     try {
       const searchQuery = buildContextualQuery(followUpQuestion, messages);
-      const allResults = await findRelevantContent(searchQuery);
+      const allResults = await findRelevantContent(searchQuery, lang);
 
       const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
       const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
@@ -203,10 +281,22 @@ export default function App() {
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
 
         const messageId = (Date.now() + 1).toString();
+        let displayContent = topResult.description;
+
+        // Auto-translate if in Hindi mode and content looks like English
+        // We check for typical English characters at the start
+        if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(displayContent.slice(0, 50))) {
+          try {
+            displayContent = await groqService.translateText(displayContent, 'hi');
+          } catch (e) {
+            console.error('Translation failed:', e);
+          }
+        }
+
         const assistantMessage: Message = {
           id: messageId,
           type: 'assistant',
-          content: topResult.description,
+          content: displayContent,
           reference: topResult.reference,
           timestamp: new Date(),
           confidence: topResult.confidence
@@ -219,7 +309,9 @@ export default function App() {
         if (aiEnabled) {
           if (confidence < 30) {
             setTimeout(() => {
-              enhanceWithAI(messageId, followUpQuestion, [topResult]);
+              // Pass the content to AI context
+              const resultForAI = { ...topResult, description: displayContent };
+              enhanceWithAI(messageId, followUpQuestion, [resultForAI]);
             }, 100);
           } else if (confidence >= 30 && confidence <= 60) {
             setPendingAIRequest({
@@ -252,30 +344,32 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, usedQuestionIds, aiEnabled]);
+  }, [question, lang, messages, isLoading, usedQuestionIds, aiEnabled]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!question.trim() || isLoading) return;
+  const handleSubmit = useCallback(async (overrideQuestion?: string) => {
+    const questionToSubmit = overrideQuestion || question;
+    if (!questionToSubmit.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: question,
+      content: questionToSubmit,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentQuestion = question;
+
+    const currentQuestion = questionToSubmit;
     setQuestion('');
     setIsLoading(true);
     setPendingAIRequest(null);
 
     try {
       const searchQuery = messages.length > 0
-        ? buildContextualQuery(currentQuestion, messages)
-        : currentQuestion;
+        ? buildContextualQuery(questionToSubmit, messages)
+        : questionToSubmit;
 
-      const allResults = await findRelevantContent(searchQuery);
+      const allResults = await findRelevantContent(searchQuery, lang);
 
       const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
       const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
@@ -286,10 +380,19 @@ export default function App() {
         setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
 
         const messageId = (Date.now() + 1).toString();
+        let displayContent = topResult.description;
+        if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(displayContent.slice(0, 50))) {
+          try {
+            displayContent = await groqService.translateText(displayContent, 'hi');
+          } catch (e) {
+            console.error('Translation failed:', e);
+          }
+        }
+
         const assistantMessage: Message = {
           id: messageId,
           type: 'assistant',
-          content: topResult.description,
+          content: displayContent,
           reference: topResult.reference,
           timestamp: new Date(),
           confidence: topResult.confidence
@@ -302,7 +405,8 @@ export default function App() {
         if (aiEnabled) {
           if (confidence < 30) {
             setTimeout(() => {
-              enhanceWithAI(messageId, currentQuestion, [topResult]);
+              const resultForAI = { ...topResult, description: displayContent };
+              enhanceWithAI(messageId, currentQuestion, [resultForAI]);
             }, 100);
           } else if (confidence >= 30 && confidence <= 60) {
             setPendingAIRequest({
@@ -341,37 +445,56 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [question, isLoading, messages, usedQuestionIds, aiEnabled]);
+  }, [question, lang, messages, isLoading, usedQuestionIds, aiEnabled]);
 
-  const initialSuggestions = [
-    "Who am I beyond this body?",
-    "What is the ultimate purpose of human life?",
-    "What is bhakti-yoga and devotional service?",
-    "How can I find inner peace and tranquility?",
-    "What is the nature of God and the soul?",
-    "How does karma and rebirth work?",
-    "What is dharma and righteous living?",
-    "How can I overcome material desires?",
-    "What is the role of a spiritual teacher?",
-    "How should I approach death?",
-    "What is maya or illusion?",
-    "Why is there suffering in the world?"
+
+
+  const initialSuggestionsTranslated = [
+    t(lang, 'suggestion1'),
+    t(lang, 'suggestion2'),
+    t(lang, 'suggestion3'),
+    t(lang, 'suggestion4'),
+    t(lang, 'suggestion5'),
+    t(lang, 'suggestion6'),
+    t(lang, 'suggestion7'),
+    t(lang, 'suggestion8'),
+    t(lang, 'suggestion9'),
+    t(lang, 'suggestion10'),
+    t(lang, 'suggestion11'),
+    t(lang, 'suggestion12')
   ];
 
   const followUpSuggestions = [
-    "Tell me more about this",
-    "How can I practice this daily?",
-    "What are the obstacles I might face?",
-    "Can you explain this with an example?",
-    "How does this apply to my life?",
-    "What are the deeper insights?",
-    "Are there practical techniques?",
-    "What do the scriptures say?"
+    t(lang, 'tellMeMore'),
+    t(lang, 'practiceDaily'),
+    t(lang, 'obstacles'),
+    t(lang, 'example'),
+    t(lang, 'applyLife'),
+    t(lang, 'deeperInsights'),
+    t(lang, 'practicalTechniques'),
+    t(lang, 'scripturesSay')
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 relative overflow-hidden">
       <SpiritualBackground />
+
+      {/* Global Language Toggle */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="fixed top-4 right-4 z-50"
+      >
+        <motion.button
+          onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-white/90 backdrop-blur-md shadow-lg border border-amber-200/50 text-amber-700 hover:bg-amber-50 transition-colors"
+        >
+          <Globe className="size-4" />
+          <span className="font-medium">{lang === 'en' ? 'हि' : 'EN'}</span>
+        </motion.button>
+      </motion.div>
 
       <div className="relative z-10">
         <AnimatePresence mode="wait">
@@ -383,7 +506,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <HeroSection onGetStarted={handleGetStarted} />
+              <HeroSection onGetStarted={handleGetStarted} lang={lang} />
             </motion.div>
           ) : (
             <motion.div
@@ -413,10 +536,10 @@ export default function App() {
                       </div>
                       <div className="text-left">
                         <h1 className="text-lg font-semibold text-slate-900">
-                          Vedic Knowledge
+                          {t(lang, 'appName')}
                         </h1>
                         <p className="text-xs text-slate-500">
-                          Conversational Wisdom
+                          {t(lang, 'appTagline')}
                         </p>
                       </div>
                     </motion.button>
@@ -429,7 +552,7 @@ export default function App() {
                           className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-green-50 text-green-700"
                         >
                           <Sparkles className="size-4" />
-                          <span className="hidden sm:inline">AI Enhanced</span>
+                          <span className="hidden sm:inline">{t(lang, 'aiEnabled')}</span>
                         </motion.div>
                       )}
 
@@ -440,7 +563,7 @@ export default function App() {
                         className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                       >
                         <ArrowLeft className="size-4" />
-                        <span className="hidden sm:inline">Back to Home</span>
+                        <span className="hidden sm:inline">{t(lang, 'backToHome')}</span>
                       </motion.button>
                     </div>
                   </div>
@@ -470,7 +593,7 @@ export default function App() {
                         transition={{ delay: 0.4 }}
                         className="text-3xl font-bold text-slate-900 mb-3"
                       >
-                        Ask Your First Question
+                        {t(lang, 'askFirst')}
                       </motion.h2>
                       <motion.p
                         initial={{ opacity: 0, y: 10 }}
@@ -478,26 +601,35 @@ export default function App() {
                         transition={{ delay: 0.5 }}
                         className="text-slate-600 mb-8"
                       >
-                        Begin a conversation to explore spiritual wisdom. Ask follow-up questions to go deeper.
+                        {t(lang, 'askFirstDesc')}
                       </motion.p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-                      {suggestedQuestions.map((q, idx) => (
+                      {initialSuggestionsTranslated.map((q, idx) => (
                         <motion.button
                           key={idx}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.6 + idx * 0.05, duration: 0.4 }}
-                          whileHover={{ scale: 1.03, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            setQuestion(q);
-                            setTimeout(handleSubmit, 100);
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{
+                            delay: 0.6 + idx * 0.05,
+                            duration: 0.5,
+                            ease: [0.21, 0.47, 0.32, 0.98]
                           }}
-                          className="group text-left p-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl hover:border-amber-300 hover:shadow-lg transition-all"
+                          whileHover={{
+                            scale: 1.03,
+                            y: -4,
+                            backgroundColor: "rgba(255, 255, 255, 0.95)",
+                            boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.2), 0 8px 10px -6px rgba(245, 158, 11, 0.1)"
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleSubmit(q)}
+                          className="group relative text-left p-5 bg-white/80 backdrop-blur-md border border-amber-100/60 rounded-2xl hover:border-amber-400/50 transition-all duration-300 hover:animate-heartbeat"
                         >
-                          <span className="text-sm text-slate-700 group-hover:text-amber-900 transition-colors line-clamp-2">
+                          <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <Sparkles className="size-4 text-amber-500 animate-spin-slow" />
+                          </div>
+                          <span className="text-sm font-medium text-slate-700 group-hover:text-amber-700 transition-colors line-clamp-2 leading-relaxed group-hover:font-semibold">
                             {q}
                           </span>
                         </motion.button>
@@ -506,7 +638,7 @@ export default function App() {
                   </motion.div>
                 ) : (
                   <div className="space-y-6">
-                    <ConversationView messages={messages} isLoading={isLoading} />
+                    <ConversationView messages={messages} isLoading={isLoading} lang={lang} />
 
                     {pendingAIRequest && !isLoadingAI && messages.filter(m => m.type === 'assistant').length >= 4 && (
                       <motion.div
@@ -514,13 +646,17 @@ export default function App() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex justify-center"
                       >
-                        <button
-                          onClick={requestAIInsight}
-                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                        >
-                          <Sparkles className="size-4" />
-                          <span className="text-sm font-medium">Get AI Synthesis</span>
-                        </button>
+                        <div className="relative group">
+                          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                          <button
+                            onClick={requestAIInsight}
+                            className="relative flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all hover:scale-105 overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-white/20 skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
+                            <Sparkles className="size-5 animate-pulse" />
+                            <span className="text-base font-bold tracking-wide">{t(lang, 'getAISynthesis')}</span>
+                          </button>
+                        </div>
                       </motion.div>
                     )}
 
@@ -531,13 +667,14 @@ export default function App() {
                         className="flex justify-center items-center gap-2 text-sm text-slate-600"
                       >
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
-                        <span>Synthesizing deeper wisdom...</span>
+                        <span>{t(lang, 'synthesizing')}</span>
                       </motion.div>
                     )}
 
                     {!isLoading && messages.length > 0 && (
                       <QuickSuggestions
                         suggestions={followUpSuggestions}
+                        lang={lang}
                         onSelect={(q) => {
                           setQuestion('');
 
@@ -567,7 +704,7 @@ export default function App() {
                     value={question}
                     onChange={setQuestion}
                     onSubmit={handleSubmit}
-                    placeholder="Ask a question or continue the conversation..."
+                    placeholder={t(lang, 'placeholder')}
                     suggestions={suggestedQuestions}
                     disabled={isLoading}
                   />
@@ -584,7 +721,7 @@ export default function App() {
                         className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                       >
                         <Plus className="size-4" />
-                        <span>New Conversation</span>
+                        <span>{t(lang, 'newConversation')}</span>
                       </button>
                     </motion.div>
                   )}
@@ -604,10 +741,10 @@ export default function App() {
         >
           <div className="max-w-4xl mx-auto px-4 py-6">
             <p className="text-center text-sm text-slate-600">
-              Wisdom from Bhagavad Gita and Srimad Bhagavatam · Educational exploration
+              {t(lang, 'footerMain')}
             </p>
             <p className="text-center text-xs text-slate-500 mt-2">
-              Responses are generated from curated teachings and may not be fully comprehensive
+              {t(lang, 'footerDisclaimer')}
             </p>
           </div>
         </motion.footer>
@@ -621,7 +758,7 @@ export default function App() {
         >
           <div className="max-w-4xl mx-auto px-4 py-3">
             <p className="text-center text-xs text-slate-500">
-              Responses are generated from curated teachings and may not be fully comprehensive
+              {t(lang, 'footerDisclaimer')}
             </p>
           </div>
         </motion.footer>
