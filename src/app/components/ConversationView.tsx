@@ -57,14 +57,21 @@ function parseAIContent(content: string): { text: string; concepts?: string[]; b
 export function ConversationView({ messages, isLoading, lang = 'en' }: ConversationViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const userMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoading) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     } else {
-      // Small delay to ensure render is complete
       setTimeout(() => {
-        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // If we have a user question reference (context), scroll to it
+        // This ensures the Question is at the top, and the Answer follows below
+        if (userMessageRef.current) {
+          userMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          // Fallback for first message or when no user context exists
+          lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 100);
     }
   }, [messages, isLoading]);
@@ -74,10 +81,12 @@ export function ConversationView({ messages, isLoading, lang = 'en' }: Conversat
   }
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6">
       <AnimatePresence mode="popLayout">
         {messages.map((message, index) => {
           const parsed = message.isAI ? parseAIContent(message.content) : null;
+          const isLast = index === messages.length - 1;
+          const isUserContext = index === messages.length - 2;
 
           return (
             <motion.div
@@ -86,8 +95,8 @@ export function ConversationView({ messages, isLoading, lang = 'en' }: Conversat
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
-              className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              ref={lastMessageRef}
+              className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'} scroll-mt-32 md:scroll-mt-40`}
+              ref={isUserContext ? userMessageRef : (isLast ? lastMessageRef : null)}
             >
               {message.type === 'assistant' && (
                 <motion.div
