@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, ArrowLeft, Plus, Sparkles, Globe } from 'lucide-react';
+import { BookOpen, ArrowLeft, Plus, Sparkles, Globe, Compass } from 'lucide-react';
 import { findRelevantContent } from '@/app/components/QuestionMapper';
 import { HeroSection } from '@/app/components/HeroSection';
 import { ConversationView, type Message } from '@/app/components/ConversationView';
 import { AutocompleteInput } from '@/app/components/AutocompleteInput';
 import { QuickSuggestions } from '@/app/components/QuickSuggestions';
 import { SpiritualBackground } from '@/app/components/SpiritualBackground';
+import { WisdomAtlas } from '@/app/components/WisdomAtlas';
 import { groqService } from '@/app/services/GroqService';
 import { type Language, t } from '@/app/translations';
 
@@ -38,6 +39,13 @@ export default function App() {
     }
   }, [lang]);
 
+  const handleBackToAtlas = useCallback(() => {
+    setMessages([]); // Clears conversation to show Atlas
+    setQuestion('');
+    setPendingAIRequest(null);
+    setIsLoadingAI(false);
+    // View remains 'conversation'
+  }, []);
   const loadDiverseQuestions = async () => {
     console.log('loadDiverseQuestions called with lang:', lang);
     try {
@@ -350,10 +358,21 @@ export default function App() {
     const questionToSubmit = overrideQuestion || question;
     if (!questionToSubmit.trim() || isLoading) return;
 
+    let displayQuestion = questionToSubmit;
+
+    // Translate question to Hindi if needed
+    if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(questionToSubmit.slice(0, 50))) {
+      try {
+        displayQuestion = await groqService.translateText(questionToSubmit, 'hi');
+      } catch (e) {
+        console.error('Question translation failed:', e);
+      }
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: questionToSubmit,
+      content: displayQuestion,
       timestamp: new Date()
     };
 
@@ -556,6 +575,18 @@ export default function App() {
                         </motion.div>
                       )}
 
+                      {messages.length > 0 && (
+                        <motion.button
+                          onClick={handleBackToAtlas}
+                          whileHover={{ scale: 1.05, x: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors bg-white/50 rounded-lg border border-slate-200/50"
+                        >
+                          <Compass className="size-4 text-amber-600" />
+                          <span className="hidden sm:inline font-medium text-amber-700">{lang === 'en' ? 'Atlas' : 'मानचित्र'}</span>
+                        </motion.button>
+                      )}
+
                       <motion.button
                         onClick={handleGoHome}
                         whileHover={{ scale: 1.05, x: -2 }}
@@ -576,65 +607,36 @@ export default function App() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="max-w-3xl mx-auto"
+                    className="max-w-4xl mx-auto"
                   >
-                    <div className="text-center mb-12">
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
-                        className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
-                      >
-                        <BookOpen className="size-10 text-white" />
-                      </motion.div>
-                      <motion.h2
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="text-3xl font-bold text-slate-900 mb-3"
-                      >
-                        {t(lang, 'askFirst')}
-                      </motion.h2>
+                    <div className="text-center mb-8">
+                      <div className="relative inline-block">
+                        <motion.h2
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-amber-600 via-orange-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x relative z-10"
+                        >
+                          {lang === 'en' ? 'Explore the Wisdom Atlas' : 'ज्ञान मानचित्र का अन्वेषण करें'}
+                        </motion.h2>
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_3s_infinite] skew-x-12 pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 1 }}
+                        />
+                      </div>
                       <motion.p
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="text-slate-600 mb-8"
+                        transition={{ delay: 0.4 }}
+                        className="text-slate-800 font-semibold text-lg"
                       >
-                        {t(lang, 'askFirstDesc')}
+                        {lang === 'en' ? 'Click a domain to explore, or wander randomly' : 'किसी क्षेत्र पर क्लिक करें, या यादृच्छिक भ्रमण करें'}
                       </motion.p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-                      {initialSuggestionsTranslated.map((q, idx) => (
-                        <motion.button
-                          key={idx}
-                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{
-                            delay: 0.6 + idx * 0.05,
-                            duration: 0.5,
-                            ease: [0.21, 0.47, 0.32, 0.98]
-                          }}
-                          whileHover={{
-                            scale: 1.03,
-                            y: -4,
-                            backgroundColor: "rgba(255, 255, 255, 0.95)",
-                            boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.2), 0 8px 10px -6px rgba(245, 158, 11, 0.1)"
-                          }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleSubmit(q)}
-                          className="group relative text-left p-5 bg-white/80 backdrop-blur-md border border-amber-100/60 rounded-2xl hover:border-amber-400/50 transition-all duration-300 hover:animate-heartbeat"
-                        >
-                          <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <Sparkles className="size-4 text-amber-500 animate-spin-slow" />
-                          </div>
-                          <span className="text-sm font-medium text-slate-700 group-hover:text-amber-700 transition-colors line-clamp-2 leading-relaxed group-hover:font-semibold">
-                            {q}
-                          </span>
-                        </motion.button>
-                      ))}
-                    </div>
+                    <WisdomAtlas onSelectQuestion={handleSubmit} lang={lang} />
                   </motion.div>
                 ) : (
                   <div className="space-y-6">
