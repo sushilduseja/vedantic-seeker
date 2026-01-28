@@ -1,13 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, ArrowLeft, Plus, Sparkles, Globe, Compass } from 'lucide-react';
-import { findRelevantContent } from '@/app/components/QuestionMapper';
+import { findRelevantContent } from '@/app/components/ContentMapper';
 import { HeroSection } from '@/app/components/HeroSection';
 import { ConversationView, type Message } from '@/app/components/ConversationView';
 import { AutocompleteInput } from '@/app/components/AutocompleteInput';
 import { QuickSuggestions } from '@/app/components/QuickSuggestions';
 import { SpiritualBackground } from '@/app/components/SpiritualBackground';
 import { WisdomAtlas } from '@/app/components/WisdomAtlas';
+import { ModeSelector, type AppMode } from '@/app/components/ModeSelector';
+import { DivineNamesMode } from '@/app/components/DivineNamesMode';
 import { groqService } from '@/app/services/GroqService';
 import { type Language, t } from '@/app/translations';
 
@@ -15,6 +17,7 @@ type View = 'hero' | 'conversation';
 
 export default function App() {
   const [view, setView] = useState<View>('hero');
+  const [mode, setMode] = useState<AppMode>('teachings');
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +40,23 @@ export default function App() {
       groqService.setApiKey(envKey);
       setAiEnabled(true);
     }
+
+    // Load last used mode
+    const savedMode = localStorage.getItem('appMode');
+    if (savedMode === 'names') {
+      setMode('names');
+    }
   }, [lang]);
+
+  // Persist mode changes
+  const handleModeChange = useCallback((newMode: AppMode) => {
+    setMode(newMode);
+    localStorage.setItem('appMode', newMode);
+    // When switching modes, ensure we're on the hero view initially
+    if (view === 'conversation') { // Optional: decide if we want to reset view
+      // setView('hero'); 
+    }
+  }, [view]);
 
   const handleBackToAtlas = useCallback(() => {
     setMessages([]); // Clears conversation to show Atlas
@@ -502,8 +521,13 @@ export default function App() {
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed top-4 right-4 z-50"
+        className="fixed top-4 right-4 z-50 flex items-center gap-4"
       >
+        <ModeSelector
+          mode={mode}
+          onModeChange={handleModeChange}
+          lang={lang}
+        />
         <motion.button
           onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
           whileHover={{ scale: 1.05 }}
@@ -517,7 +541,18 @@ export default function App() {
 
       <div className="relative z-10">
         <AnimatePresence mode="wait">
-          {view === 'hero' ? (
+          {mode === 'names' ? (
+            <motion.div
+              key="names-mode"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="min-h-screen pt-20"
+            >
+              <DivineNamesMode lang={lang} aiEnabled={aiEnabled} />
+            </motion.div>
+          ) : view === 'hero' ? (
             <motion.div
               key="hero"
               initial={{ opacity: 0 }}

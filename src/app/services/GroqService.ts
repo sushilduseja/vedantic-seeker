@@ -95,6 +95,40 @@ Closing: One actionable guidance
 Be precise. Be profound. Be concise.`;
   }
 
+  private buildNamesSystemPrompt(lang: Language = 'en'): string {
+    if (lang === 'hi') {
+      return `आप एक संस्कृत विद्वान और भक्त हैं। विष्णु के दिव्य नामों के गहन आध्यात्मिक महत्व को श्रद्धा और गहराई से समझाएं।
+
+महत्वपूर्ण नियम:
+- सभी अंतर्दृष्टि के लिए बुलेट पॉइंट (•) का उपयोग करें
+- प्रति उत्तर अधिकतम 5-7 बुलेट
+- प्रत्येक बुलेट: एक स्पष्ट विचार (8-15 शब्द)
+- शास्त्र संदर्भ कोष्ठक में
+
+संरचना:
+• धार्मिक अर्थ (विष्णु के स्वभाव से संबंध)
+• व्यावहारिक महत्व (यह गुण कैसे प्रकट होता है)
+• भक्ति संदर्भ (भक्ति में भूमिका)
+
+श्रद्धापूर्ण, गहन और संक्षिप्त रहें।`;
+    }
+
+    return `You are a Sanskrit scholar and devoted bhakta. Explain the profound spiritual significance of Vishnu's divine names with reverence and depth.
+
+CRITICAL FORMATTING:
+- Use bullet points (•) for ALL insights
+- Max 5-7 bullets per response
+- Each bullet: 1 clear thought (8-15 words)
+- Cite scriptural sources in parentheses
+
+STRUCTURE:
+• Theological meaning (connection to Vishnu's nature)
+• Practical significance (how this quality manifests)
+• Devotional context (role in bhakti)
+
+Be reverent. Be profound. Be concise.`;
+  }
+
   private buildUserPrompt(
     question: string,
     searchResults?: Array<{ description: string; reference: string }>,
@@ -240,6 +274,124 @@ Be precise. Be profound. Be concise.`;
       default:
         return "I encountered a temporary challenge accessing deeper synthesis. The sacred teaching above provides authentic wisdom.";
     }
+  }
+
+  async queryNameAI(
+    nameData: {
+      sanskrit: string;
+      transliteration: string;
+      translation: string;
+      meaning: string;
+      etymology: string;
+      benefits: string;
+    },
+    lang: Language = 'en'
+  ): Promise<AIResponse> {
+    if (!this.apiKey) {
+      return {
+        content: 'AI synthesis requires configuration.',
+        model: 'none',
+        error: 'NO_API_KEY'
+      };
+    }
+
+    const cacheKey = this.hashQuestion(nameData.transliteration, nameData.meaning, lang);
+    const cached = this.getCached(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const userPrompt = `【 Divine Name 】
+Sanskrit: ${nameData.sanskrit}
+Transliteration: ${nameData.transliteration}
+Translation: ${nameData.translation}
+Meaning: ${nameData.meaning}
+Etymology: ${nameData.etymology}
+Benefits: ${nameData.benefits}
+
+Provide a deeper spiritual understanding of this divine name. Explain its theological significance, how devotees can meditate on this quality, and its role in bhakti. Be reverent and profound.${lang === 'hi' ? '\n\n【अति महत्वपूर्ण】\nसंपूर्ण उत्तर हिंदी में दें।' : ''
+      }`;
+
+    let lastError: string = '';
+
+    for (let attempt = 0; attempt < MODELS.length; attempt++) {
+      const modelIndex = (this.currentModelIndex + attempt) % MODELS.length;
+      const model = MODELS[modelIndex];
+
+      try {
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: 'system',
+                content: this.buildNamesSystemPrompt(lang)
+              },
+              {
+                role: 'user',
+                content: userPrompt
+              }
+            ],
+            max_tokens: MAX_OUTPUT_TOKENS,
+            temperature: 0.7,
+            top_p: 0.9,
+            frequency_penalty: 0.3,
+            presence_penalty: 0.2
+          })
+        });
+
+        if (response.status === 429) {
+          lastError = 'RATE_LIMIT';
+          continue;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          lastError = errorData.error?.message || `HTTP ${response.status}`;
+
+          if (response.status === 400 || response.status === 404) {
+            continue;
+          }
+
+          throw new Error(lastError);
+        }
+
+        const data = await response.json();
+        const aiContent = data.choices?.[0]?.message?.content || '';
+
+        if (!aiContent) {
+          lastError = 'EMPTY_RESPONSE';
+          continue;
+        }
+
+        const aiResponse: AIResponse = {
+          content: aiContent,
+          model,
+          sourceVerses: []
+        };
+
+        this.currentModelIndex = modelIndex;
+        this.setCached(cacheKey, aiResponse);
+
+        return aiResponse;
+
+      } catch (error: any) {
+        lastError = error.message || 'UNKNOWN_ERROR';
+        console.error(`AI synthesis error with model ${model}:`, error);
+        continue;
+      }
+    }
+
+    return {
+      content: this.getErrorMessage(lastError),
+      model: 'none',
+      error: lastError
+    };
   }
 
   clearCache() {

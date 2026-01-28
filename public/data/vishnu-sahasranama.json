@@ -1,0 +1,1674 @@
+{
+    "metadata": {
+        "totalNames": 1000,
+        "source": "Mahabharata, Anushasana Parva",
+        "language": "Sanskrit",
+        "version": "1.0.0"
+    },
+    "names": [
+        {
+            "id": 1,
+            "sanskrit": "विश्वम्",
+            "transliteration": "Vishvam",
+            "translation": "The Universe",
+            "meaning": "He who is the universe itself, the all-pervading reality that encompasses everything",
+            "context": "First name signifying Vishnu as cosmic totality",
+            "attributes": [
+                "omnipresence",
+                "cosmic",
+                "all-pervading"
+            ],
+            "benefits": "Chanting invokes awareness of universal consciousness",
+            "etymology": "From root 'vish' - to pervade",
+            "verseRef": "MB 13.149.15"
+        },
+        {
+            "id": 2,
+            "sanskrit": "विष्णुः",
+            "transliteration": "Vishnuh",
+            "translation": "The All-Pervader",
+            "meaning": "He who pervades everything, present everywhere",
+            "context": "The fundamental nature of the Supreme as omnipresent",
+            "attributes": [
+                "omnipresence",
+                "supreme"
+            ],
+            "benefits": "Meditation brings awareness of divine presence everywhere",
+            "etymology": "From 'vish' - to enter, pervade",
+            "verseRef": "MB 13.149.15"
+        },
+        {
+            "id": 3,
+            "sanskrit": "वषट्कारः",
+            "transliteration": "Vashatkaarah",
+            "translation": "The Sacred Exclamation",
+            "meaning": "He for whom the sacrificial exclamation 'Vashat' is uttered",
+            "context": "Lord of all Vedic sacrifices",
+            "attributes": [
+                "sacrifice",
+                "vedic"
+            ],
+            "benefits": "Sanctifies all offerings and rituals",
+            "etymology": "From 'vashat' - sacrificial call",
+            "verseRef": "MB 13.149.15"
+        },
+        {
+            "id": 4,
+            "sanskrit": "भूतभव्यभवत्प्रभुः",
+            "transliteration": "Bhuta-bhavya-bhavat-prabhuh",
+            "translation": "Lord of Past, Present and Future",
+            "meaning": "The master of all that was, is, and will be",
+            "context": "Transcendence over time",
+            "attributes": [
+                "eternal",
+                "time",
+                "supreme"
+            ],
+            "benefits": "Frees from anxiety about past and future",
+            "etymology": "bhuta (past) + bhavya (future) + bhavat (present) + prabhu (lord)",
+            "verseRef": "MB 13.149.15"
+        },
+        {
+            "id": 5,
+            "sanskrit": "भूतकृत्",
+            "transliteration": "Bhutakrit",
+            "translation": "Creator of Beings",
+            "meaning": "He who creates all living entities",
+            "context": "The creative aspect of the Supreme",
+            "attributes": [
+                "creator",
+                "life-giver"
+            ],
+            "benefits": "Invokes creative energy and new beginnings",
+            "etymology": "bhuta (beings) + krit (maker)",
+            "verseRef": "MB 13.149.16"
+        },
+        {
+            "id": 6,
+            "sanskrit": "भूतभृत्",
+            "transliteration": "Bhutabhrit",
+            "translation": "Sustainer of Beings",
+            "meaning": "He who supports and nourishes all creatures",
+            "context": "The sustaining aspect of divinity",
+            "attributes": [
+                "sustainer",
+                "protector",
+                "nourisher"
+            ],
+            "benefits": "Brings divine support and sustenance",
+            "etymology": "bhuta (beings) + bhrit (supporter)",
+            "verseRef": "MB 13.149.16"
+        },
+        {
+            "id": 7,
+            "sanskrit": "भावः",
+            "transliteration": "Bhavah",
+            "translation": "Existence Itself",
+            "meaning": "He who is pure existence, the essence of being",
+            "context": "The fundamental nature of reality",
+            "attributes": [
+                "existence",
+                "being"
+            ],
+            "benefits": "Deepens understanding of true existence",
+            "etymology": "From 'bhu' - to be, exist",
+            "verseRef": "MB 13.149.16"
+        },
+        {
+            "id": 8,
+            "sanskrit": "भूतात्मा",
+            "transliteration": "Bhutatma",
+            "translation": "Soul of All Beings",
+            "meaning": "The inner Self dwelling in all creatures",
+            "context": "Immanence of the Divine in all life",
+            "attributes": [
+                "soul",
+                "immanent",
+                "inner-self"
+            ],
+            "benefits": "Reveals the divine within all beings",
+            "etymology": "bhuta (beings) + atma (soul)",
+            "verseRef": "MB 13.149.16"
+        },
+        {
+            "id": 9,
+            "sanskrit": "भूतभावनः",
+            "transliteration": "Bhutabhavanah",
+            "translation": "Cause of All Beings",
+            "meaning": "He who causes all beings to manifest and flourish",
+            "context": "Origin and growth of all life",
+            "attributes": [
+                "creator",
+                "cause",
+                "origin"
+            ],
+            "benefits": "Promotes growth and manifestation",
+            "etymology": "bhuta (beings) + bhavana (causing to be)",
+            "verseRef": "MB 13.149.16"
+        },
+        {
+            "id": 10,
+            "sanskrit": "पूतात्मा",
+            "transliteration": "Putatma",
+            "translation": "The Pure Soul",
+            "meaning": "He whose nature is supremely pure and untainted",
+            "context": "Absolute purity of the Divine",
+            "attributes": [
+                "purity",
+                "holy",
+                "untainted"
+            ],
+            "benefits": "Purifies the mind and heart of devotee",
+            "etymology": "puta (pure) + atma (soul)",
+            "verseRef": "MB 13.149.17"
+        },
+        {
+            "id": 11,
+            "sanskrit": "परमात्मा",
+            "transliteration": "Paramatma",
+            "translation": "The Supreme Soul",
+            "meaning": "The highest Self, the Supersoul dwelling in all hearts",
+            "context": "The supreme consciousness within",
+            "attributes": [
+                "supreme",
+                "soul",
+                "consciousness"
+            ],
+            "benefits": "Awakens awareness of the indwelling Divine",
+            "etymology": "parama (supreme) + atma (soul)",
+            "verseRef": "MB 13.149.17"
+        },
+        {
+            "id": 12,
+            "sanskrit": "मुक्तानां परमा गतिः",
+            "transliteration": "Muktanam Parama Gatih",
+            "translation": "Supreme Goal of the Liberated",
+            "meaning": "The ultimate destination of those who attain liberation",
+            "context": "Final refuge of enlightened souls",
+            "attributes": [
+                "liberation",
+                "goal",
+                "refuge"
+            ],
+            "benefits": "Guides toward ultimate liberation",
+            "etymology": "mukta (liberated) + parama (supreme) + gati (goal)",
+            "verseRef": "MB 13.149.17"
+        },
+        {
+            "id": 13,
+            "sanskrit": "अव्ययः",
+            "transliteration": "Avyayah",
+            "translation": "The Imperishable",
+            "meaning": "He who never diminishes or decays",
+            "context": "Eternal and unchanging nature",
+            "attributes": [
+                "eternal",
+                "imperishable",
+                "unchanging"
+            ],
+            "benefits": "Grants freedom from fear of death",
+            "etymology": "a (not) + vyaya (decay)",
+            "verseRef": "MB 13.149.17"
+        },
+        {
+            "id": 14,
+            "sanskrit": "पुरुषः",
+            "transliteration": "Purushah",
+            "translation": "The Supreme Person",
+            "meaning": "The primeval person, the conscious principle",
+            "context": "Personal aspect of the Absolute",
+            "attributes": [
+                "person",
+                "conscious",
+                "supreme"
+            ],
+            "benefits": "Develops loving relationship with the Divine",
+            "etymology": "From 'pura' - city (body) + 'sha' - dweller",
+            "verseRef": "MB 13.149.18"
+        },
+        {
+            "id": 15,
+            "sanskrit": "साक्षी",
+            "transliteration": "Sakshi",
+            "translation": "The Witness",
+            "meaning": "He who observes all without being affected",
+            "context": "The eternal witness consciousness",
+            "attributes": [
+                "witness",
+                "observer",
+                "detached"
+            ],
+            "benefits": "Cultivates detached awareness",
+            "etymology": "sa (with) + aksha (eyes) - one who sees directly",
+            "verseRef": "MB 13.149.18"
+        },
+        {
+            "id": 16,
+            "sanskrit": "क्षेत्रज्ञः",
+            "transliteration": "Kshetrajnah",
+            "translation": "Knower of the Field",
+            "meaning": "He who knows all bodies and their activities",
+            "context": "The conscious knower within the body-field",
+            "attributes": [
+                "knowledge",
+                "consciousness",
+                "knower"
+            ],
+            "benefits": "Awakens discrimination between body and soul",
+            "etymology": "kshetra (field/body) + jna (knower)",
+            "verseRef": "MB 13.149.18"
+        },
+        {
+            "id": 17,
+            "sanskrit": "अक्षरः",
+            "transliteration": "Aksharah",
+            "translation": "The Indestructible",
+            "meaning": "He who is beyond destruction and decay",
+            "context": "Immutable essence",
+            "attributes": [
+                "eternal",
+                "indestructible",
+                "immutable"
+            ],
+            "benefits": "Anchors consciousness in the unchanging",
+            "etymology": "a (not) + kshara (perishable)",
+            "verseRef": "MB 13.149.18"
+        },
+        {
+            "id": 18,
+            "sanskrit": "योगः",
+            "transliteration": "Yogah",
+            "translation": "Union with Supreme",
+            "meaning": "He who is attainable through yoga; the means and goal of yoga",
+            "context": "Path and destination of spiritual practice",
+            "attributes": [
+                "yoga",
+                "union",
+                "practice"
+            ],
+            "benefits": "Facilitates spiritual union and discipline",
+            "etymology": "From 'yuj' - to unite",
+            "verseRef": "MB 13.149.19"
+        },
+        {
+            "id": 19,
+            "sanskrit": "योगविदां नेता",
+            "transliteration": "Yogavidaam Neta",
+            "translation": "Leader of Yogis",
+            "meaning": "He who guides all practitioners of yoga",
+            "context": "Supreme teacher of spiritual science",
+            "attributes": [
+                "teacher",
+                "guide",
+                "yoga-master"
+            ],
+            "benefits": "Provides guidance in spiritual practice",
+            "etymology": "yoga-vidam (knowers of yoga) + neta (leader)",
+            "verseRef": "MB 13.149.19"
+        },
+        {
+            "id": 20,
+            "sanskrit": "प्रधानपुरुषेश्वरः",
+            "transliteration": "Pradhana-purushesvara",
+            "translation": "Lord of Nature and Soul",
+            "meaning": "The controller of both primordial matter and consciousness",
+            "context": "Supremacy over material and spiritual realms",
+            "attributes": [
+                "controller",
+                "supreme",
+                "master"
+            ],
+            "benefits": "Harmonizes matter and spirit in life",
+            "etymology": "pradhana (nature) + purusha (soul) + ishvara (lord)",
+            "verseRef": "MB 13.149.19"
+        },
+        {
+            "id": 21,
+            "sanskrit": "नारसिंहवपुः",
+            "transliteration": "Narasimha-vapuh",
+            "translation": "Man-Lion Form",
+            "meaning": "He who assumed the form of half-man, half-lion",
+            "context": "Avatar who protected Prahlada",
+            "attributes": [
+                "protector",
+                "avatar",
+                "fierce"
+            ],
+            "benefits": "Destroys obstacles and protects devotees",
+            "etymology": "nara (man) + simha (lion) + vapu (form)",
+            "verseRef": "MB 13.149.19"
+        },
+        {
+            "id": 22,
+            "sanskrit": "श्रीमान्",
+            "transliteration": "Shriman",
+            "translation": "Possessor of All Wealth",
+            "meaning": "He who is adorned with all divine opulences",
+            "context": "The source of all prosperity",
+            "attributes": [
+                "wealth",
+                "prosperity",
+                "opulence"
+            ],
+            "benefits": "Bestows material and spiritual prosperity",
+            "etymology": "shri (wealth/beauty) + man (possessing)",
+            "verseRef": "MB 13.149.20"
+        },
+        {
+            "id": 23,
+            "sanskrit": "केशवः",
+            "transliteration": "Keshavah",
+            "translation": "Beautiful-Haired One",
+            "meaning": "He with beautiful, flowing locks; slayer of demon Keshi",
+            "context": "Krishna's beauty and valor",
+            "attributes": [
+                "beauty",
+                "valor",
+                "krishna"
+            ],
+            "benefits": "Attracts divine grace and beauty",
+            "etymology": "kesha (hair) or keshi (demon) + va (slayer)",
+            "verseRef": "MB 13.149.20"
+        },
+        {
+            "id": 24,
+            "sanskrit": "पुरुषोत्तमः",
+            "transliteration": "Purushottamah",
+            "translation": "Supreme Person",
+            "meaning": "He who is the highest among all beings",
+            "context": "Transcendence over all souls",
+            "attributes": [
+                "supreme",
+                "highest",
+                "transcendent"
+            ],
+            "benefits": "Elevates consciousness to the highest",
+            "etymology": "purusha (person) + uttama (highest)",
+            "verseRef": "MB 13.149.20"
+        },
+        {
+            "id": 25,
+            "sanskrit": "सर्वः",
+            "transliteration": "Sarvah",
+            "translation": "The All",
+            "meaning": "He who is everything that exists",
+            "context": "All-inclusive nature of the Divine",
+            "attributes": [
+                "all",
+                "everything",
+                "totality"
+            ],
+            "benefits": "Reveals unity in diversity",
+            "etymology": "sarva - all, everything",
+            "verseRef": "MB 13.149.21"
+        },
+        {
+            "id": 26,
+            "sanskrit": "शर्वः",
+            "transliteration": "Sharvah",
+            "translation": "The Destroyer of Evil",
+            "meaning": "He who destroys all that is inauspicious",
+            "context": "Remover of obstacles and negativity",
+            "attributes": [
+                "destroyer",
+                "purifier",
+                "protector"
+            ],
+            "benefits": "Removes negative karmas and obstacles",
+            "etymology": "From 'sharv' - to destroy, injure",
+            "verseRef": "MB 13.149.21"
+        },
+        {
+            "id": 27,
+            "sanskrit": "शिवः",
+            "transliteration": "Shivah",
+            "translation": "The Auspicious One",
+            "meaning": "He who is supremely benevolent and auspicious",
+            "context": "Embodiment of auspiciousness",
+            "attributes": [
+                "auspicious",
+                "benevolent",
+                "gracious"
+            ],
+            "benefits": "Brings auspiciousness and well-being",
+            "etymology": "shiva - auspicious, benign",
+            "verseRef": "MB 13.149.21"
+        },
+        {
+            "id": 28,
+            "sanskrit": "स्थाणुः",
+            "transliteration": "Sthanuh",
+            "translation": "The Immovable",
+            "meaning": "He who is firm and unshakeable like a pillar",
+            "context": "Unchanging stability of the Divine",
+            "attributes": [
+                "stable",
+                "immovable",
+                "steadfast"
+            ],
+            "benefits": "Provides stability in changing circumstances",
+            "etymology": "From 'stha' - to stand firmly",
+            "verseRef": "MB 13.149.21"
+        },
+        {
+            "id": 29,
+            "sanskrit": "भूतादिः",
+            "transliteration": "Bhutadih",
+            "translation": "Source of Elements",
+            "meaning": "He who is the primordial cause of all elements",
+            "context": "Origin of material creation",
+            "attributes": [
+                "source",
+                "primordial",
+                "origin"
+            ],
+            "benefits": "Connects to the source of all manifestation",
+            "etymology": "bhuta (elements) + adi (beginning)",
+            "verseRef": "MB 13.149.21"
+        },
+        {
+            "id": 30,
+            "sanskrit": "निधिरव्ययः",
+            "transliteration": "Nidhir-avyayah",
+            "translation": "Inexhaustible Treasure",
+            "meaning": "He who is the never-diminishing storehouse of all wealth",
+            "context": "Infinite abundance of the Divine",
+            "attributes": [
+                "treasure",
+                "inexhaustible",
+                "abundance"
+            ],
+            "benefits": "Opens access to infinite divine resources",
+            "etymology": "nidhi (treasure) + avyaya (inexhaustible)",
+            "verseRef": "MB 13.149.22"
+        },
+        {
+            "id": 31,
+            "sanskrit": "सम्भवः",
+            "transliteration": "Sambhavah",
+            "translation": "Self-Manifested",
+            "meaning": "He who manifests by His own will",
+            "context": "Self-originated existence",
+            "attributes": [
+                "self-manifested",
+                "independent",
+                "self-existent"
+            ],
+            "benefits": "Inspires self-reliance and inner strength",
+            "etymology": "sam (completely) + bhava (being)",
+            "verseRef": "MB 13.149.22"
+        },
+        {
+            "id": 32,
+            "sanskrit": "भावनः",
+            "transliteration": "Bhavanah",
+            "translation": "The Creator",
+            "meaning": "He who gives existence to all beings",
+            "context": "Active creator and manifester",
+            "attributes": [
+                "creator",
+                "giver-of-existence",
+                "manifester"
+            ],
+            "benefits": "Manifests desires into reality",
+            "etymology": "From 'bhu' - to be, bring into being",
+            "verseRef": "MB 13.149.22"
+        },
+        {
+            "id": 33,
+            "sanskrit": "भर्ता",
+            "transliteration": "Bharta",
+            "translation": "The Sustainer",
+            "meaning": "He who bears the burden of maintaining creation",
+            "context": "Provider and nourisher",
+            "attributes": [
+                "sustainer",
+                "provider",
+                "supporter"
+            ],
+            "benefits": "Ensures sustenance and support",
+            "etymology": "From 'bhri' - to bear, support",
+            "verseRef": "MB 13.149.22"
+        },
+        {
+            "id": 34,
+            "sanskrit": "प्रभवः",
+            "transliteration": "Prabhavah",
+            "translation": "Origin of All",
+            "meaning": "He from whom everything originates",
+            "context": "Primal source of manifestation",
+            "attributes": [
+                "origin",
+                "source",
+                "beginning"
+            ],
+            "benefits": "Reveals the source of all phenomena",
+            "etymology": "pra (forth) + bhava (being)",
+            "verseRef": "MB 13.149.22"
+        },
+        {
+            "id": 35,
+            "sanskrit": "प्रभुः",
+            "transliteration": "Prabhuh",
+            "translation": "The Lord",
+            "meaning": "He who has supreme authority over all",
+            "context": "Sovereignty of the Supreme",
+            "attributes": [
+                "lord",
+                "master",
+                "sovereign"
+            ],
+            "benefits": "Instills surrender and devotion",
+            "etymology": "pra (supreme) + bhu (being)",
+            "verseRef": "MB 13.149.23"
+        },
+        {
+            "id": 36,
+            "sanskrit": "ईश्वरः",
+            "transliteration": "Ishvarah",
+            "translation": "The Controller",
+            "meaning": "He who has complete control over all",
+            "context": "Supreme controller of cosmic laws",
+            "attributes": [
+                "controller",
+                "ruler",
+                "master"
+            ],
+            "benefits": "Brings order and control in life",
+            "etymology": "From 'ish' - to rule, control",
+            "verseRef": "MB 13.149.23"
+        },
+        {
+            "id": 37,
+            "sanskrit": "स्वयम्भूः",
+            "transliteration": "Svayambhuh",
+            "translation": "Self-Existent",
+            "meaning": "He who exists by Himself, uncaused",
+            "context": "Self-originated reality",
+            "attributes": [
+                "self-existent",
+                "uncaused",
+                "independent"
+            ],
+            "benefits": "Awakens understanding of ultimate reality",
+            "etymology": "svayam (self) + bhu (being)",
+            "verseRef": "MB 13.149.23"
+        },
+        {
+            "id": 38,
+            "sanskrit": "शम्भुः",
+            "transliteration": "Shambhuh",
+            "translation": "Bestower of Happiness",
+            "meaning": "He who grants bliss and prosperity",
+            "context": "Source of true happiness",
+            "attributes": [
+                "bliss-giver",
+                "benevolent",
+                "gracious"
+            ],
+            "benefits": "Bestows inner peace and happiness",
+            "etymology": "sham (happiness) + bhu (being)",
+            "verseRef": "MB 13.149.23"
+        },
+        {
+            "id": 39,
+            "sanskrit": "आदित्यः",
+            "transliteration": "Adityah",
+            "translation": "Son of Aditi",
+            "meaning": "He who appeared as Vamana, son of Aditi",
+            "context": "Avatar born to cosmic mother Aditi",
+            "attributes": [
+                "avatar",
+                "divine-birth",
+                "cosmic"
+            ],
+            "benefits": "Connects to cosmic maternal energy",
+            "etymology": "Born of Aditi (boundless one)",
+            "verseRef": "MB 13.149.23"
+        },
+        {
+            "id": 40,
+            "sanskrit": "पुष्कराक्षः",
+            "transliteration": "Pushkarakshah",
+            "translation": "Lotus-Eyed",
+            "meaning": "He whose eyes are beautiful like lotus petals",
+            "context": "Divine beauty and compassionate vision",
+            "attributes": [
+                "beautiful",
+                "compassionate",
+                "graceful"
+            ],
+            "benefits": "Opens eyes to divine beauty",
+            "etymology": "pushkara (lotus) + aksha (eye)",
+            "verseRef": "MB 13.149.24"
+        },
+        {
+            "id": 41,
+            "sanskrit": "महास्वनः",
+            "transliteration": "Mahasvanah",
+            "translation": "Lord of Great Sound",
+            "meaning": "He from whom emanates the primordial sound",
+            "context": "Source of cosmic vibration and Vedas",
+            "attributes": [
+                "vedic",
+                "sound",
+                "primordial"
+            ],
+            "benefits": "Attunes to sacred sound and mantras",
+            "etymology": "maha (great) + svana (sound)",
+            "verseRef": "MB 13.149.24"
+        },
+        {
+            "id": 42,
+            "sanskrit": "अनादिनिधनः",
+            "transliteration": "Anadi-nidhanah",
+            "translation": "Without Beginning or End",
+            "meaning": "He who has no origin and no conclusion",
+            "context": "Eternal existence beyond time",
+            "attributes": [
+                "eternal",
+                "timeless",
+                "infinite"
+            ],
+            "benefits": "Transcends fear of death and birth",
+            "etymology": "an (not) + adi (beginning) + nidhana (end)",
+            "verseRef": "MB 13.149.24"
+        },
+        {
+            "id": 43,
+            "sanskrit": "धाता",
+            "transliteration": "Dhata",
+            "translation": "The Establisher",
+            "meaning": "He who ordains and establishes cosmic order",
+            "context": "Creator of universal laws",
+            "attributes": [
+                "ordainer",
+                "law-giver",
+                "establisher"
+            ],
+            "benefits": "Establishes dharma and order in life",
+            "etymology": "From 'dha' - to establish, support",
+            "verseRef": "MB 13.149.24"
+        },
+        {
+            "id": 44,
+            "sanskrit": "विधाता",
+            "transliteration": "Vidhata",
+            "translation": "The Dispenser",
+            "meaning": "He who dispenses the fruits of karma",
+            "context": "Cosmic judge and karmic dispenser",
+            "attributes": [
+                "justice",
+                "karma",
+                "dispenser"
+            ],
+            "benefits": "Ensures just results of actions",
+            "etymology": "vi (variously) + dhata (establisher)",
+            "verseRef": "MB 13.149.24"
+        },
+        {
+            "id": 45,
+            "sanskrit": "धातुरुत्तमः",
+            "transliteration": "Dhatur-uttamah",
+            "translation": "Supreme Establisher",
+            "meaning": "He who is the highest among all creators",
+            "context": "Supremacy among creative forces",
+            "attributes": [
+                "supreme",
+                "creator",
+                "highest"
+            ],
+            "benefits": "Invokes highest creative power",
+            "etymology": "dhatu (creator) + uttama (supreme)",
+            "verseRef": "MB 13.149.25"
+        },
+        {
+            "id": 46,
+            "sanskrit": "अप्रमेयः",
+            "transliteration": "Aprameyah",
+            "translation": "The Immeasurable",
+            "meaning": "He who cannot be measured or comprehended",
+            "context": "Beyond all measurement and understanding",
+            "attributes": [
+                "immeasurable",
+                "incomprehensible",
+                "infinite"
+            ],
+            "benefits": "Expands consciousness beyond limits",
+            "etymology": "a (not) + prameya (measurable)",
+            "verseRef": "MB 13.149.25"
+        },
+        {
+            "id": 47,
+            "sanskrit": "हृषीकेशः",
+            "transliteration": "Hrishikeshah",
+            "translation": "Lord of the Senses",
+            "meaning": "He who is the master of all sense organs",
+            "context": "Controller of perception and action",
+            "attributes": [
+                "master",
+                "controller",
+                "senses"
+            ],
+            "benefits": "Develops mastery over senses",
+            "etymology": "hrishika (senses) + isha (lord)",
+            "verseRef": "MB 13.149.25"
+        },
+        {
+            "id": 48,
+            "sanskrit": "पद्मनाभः",
+            "transliteration": "Padmanabhah",
+            "translation": "Lotus-Naveled",
+            "meaning": "He from whose navel springs the cosmic lotus",
+            "context": "Source of Brahma and creation",
+            "attributes": [
+                "creator",
+                "cosmic",
+                "source"
+            ],
+            "benefits": "Awakens creative potential",
+            "etymology": "padma (lotus) + nabha (navel)",
+            "verseRef": "MB 13.149.25"
+        },
+        {
+            "id": 49,
+            "sanskrit": "अमरप्रभुः",
+            "transliteration": "Amara-prabhuh",
+            "translation": "Lord of the Immortals",
+            "meaning": "He who is the master of all gods",
+            "context": "Supreme among celestial beings",
+            "attributes": [
+                "supreme",
+                "lord",
+                "celestial"
+            ],
+            "benefits": "Invokes divine hierarchy's blessings",
+            "etymology": "amara (immortals) + prabhu (lord)",
+            "verseRef": "MB 13.149.25"
+        },
+        {
+            "id": 50,
+            "sanskrit": "विश्वकर्मा",
+            "transliteration": "Vishvakarma",
+            "translation": "Universal Architect",
+            "meaning": "He who is the creator of the entire universe",
+            "context": "Divine architect of all creation",
+            "attributes": [
+                "architect",
+                "creator",
+                "designer"
+            ],
+            "benefits": "Inspires skill and craftsmanship",
+            "etymology": "vishva (universe) + karma (action/creation)",
+            "verseRef": "MB 13.149.26"
+        },
+        {
+            "id": 51,
+            "sanskrit": "मनुः",
+            "transliteration": "Manuh",
+            "translation": "The Great Thinker",
+            "meaning": "He who deliberates and establishes dharma",
+            "context": "Lawgiver and contemplative wisdom",
+            "attributes": [
+                "wisdom",
+                "contemplative",
+                "lawgiver"
+            ],
+            "benefits": "Develops discriminative wisdom",
+            "etymology": "From 'man' - to think",
+            "verseRef": "MB 13.149.26"
+        },
+        {
+            "id": 52,
+            "sanskrit": "त्वष्टा",
+            "transliteration": "Tvashta",
+            "translation": "The Divine Carpenter",
+            "meaning": "He who shapes and fashions all forms",
+            "context": "Fashioner of embodied forms",
+            "attributes": [
+                "shaper",
+                "craftsman",
+                "designer"
+            ],
+            "benefits": "Perfects form and structure",
+            "etymology": "From 'tvaksh' - to shape, fashion",
+            "verseRef": "MB 13.149.26"
+        },
+        {
+            "id": 53,
+            "sanskrit": "स्थविष्ठः",
+            "transliteration": "Sthavishtah",
+            "translation": "The Most Enormous",
+            "meaning": "He who is supremely vast in dimension",
+            "context": "Cosmic vastness beyond comprehension",
+            "attributes": [
+                "vast",
+                "enormous",
+                "cosmic"
+            ],
+            "benefits": "Expands limited perceptions",
+            "etymology": "Superlative of 'sthula' - gross, large",
+            "verseRef": "MB 13.149.26"
+        },
+        {
+            "id": 54,
+            "sanskrit": "स्थविरो ध्रुवः",
+            "transliteration": "Sthaviro Dhruvah",
+            "translation": "Ancient and Fixed",
+            "meaning": "He who is eternally ancient yet unchanging",
+            "context": "Primordial permanence",
+            "attributes": [
+                "ancient",
+                "unchanging",
+                "permanent"
+            ],
+            "benefits": "Anchors in eternal truth",
+            "etymology": "sthavira (ancient) + dhruva (fixed)",
+            "verseRef": "MB 13.149.26"
+        },
+        {
+            "id": 55,
+            "sanskrit": "अग्राह्यः",
+            "transliteration": "Agrahyah",
+            "translation": "The Ungraspable",
+            "meaning": "He who cannot be seized or held by senses",
+            "context": "Beyond sensory perception",
+            "attributes": [
+                "imperceptible",
+                "transcendent",
+                "subtle"
+            ],
+            "benefits": "Awakens subtle perception",
+            "etymology": "a (not) + grahya (graspable)",
+            "verseRef": "MB 13.149.27"
+        },
+        {
+            "id": 56,
+            "sanskrit": "शाश्वतः",
+            "transliteration": "Shashvatah",
+            "translation": "The Eternal",
+            "meaning": "He who exists perpetually without change",
+            "context": "Perpetual existence",
+            "attributes": [
+                "eternal",
+                "perpetual",
+                "unchanging"
+            ],
+            "benefits": "Connects to timeless reality",
+            "etymology": "From 'shashu' - eternally",
+            "verseRef": "MB 13.149.27"
+        },
+        {
+            "id": 57,
+            "sanskrit": "कृष्णः",
+            "transliteration": "Krishnah",
+            "translation": "The Dark-Hued One",
+            "meaning": "He who is dark-complexioned; all-attractive",
+            "context": "Avatar as Krishna; attractiveness",
+            "attributes": [
+                "attractive",
+                "avatar",
+                "beautiful"
+            ],
+            "benefits": "Attracts divine love and grace",
+            "etymology": "From 'krish' - to attract, or 'black/dark'",
+            "verseRef": "MB 13.149.27"
+        },
+        {
+            "id": 58,
+            "sanskrit": "लोहिताक्षः",
+            "transliteration": "Lohitakshah",
+            "translation": "Red-Eyed",
+            "meaning": "He whose eyes are tinged with red from compassion",
+            "context": "Compassionate vision",
+            "attributes": [
+                "compassionate",
+                "merciful",
+                "caring"
+            ],
+            "benefits": "Invokes divine compassion",
+            "etymology": "lohita (red) + aksha (eye)",
+            "verseRef": "MB 13.149.27"
+        },
+        {
+            "id": 59,
+            "sanskrit": "प्रतर्दनः",
+            "transliteration": "Pratardanah",
+            "translation": "Supreme Destroyer",
+            "meaning": "He who destroys completely at the time of pralaya",
+            "context": "Dissolution of cosmos",
+            "attributes": [
+                "destroyer",
+                "dissolution",
+                "cosmic"
+            ],
+            "benefits": "Removes persistent obstacles",
+            "etymology": "pra (completely) + tardana (destroyer)",
+            "verseRef": "MB 13.149.27"
+        },
+        {
+            "id": 60,
+            "sanskrit": "प्रभूतः",
+            "transliteration": "Prabhutah",
+            "translation": "Ever-Full",
+            "meaning": "He who is always complete and abundant",
+            "context": "Completeness and abundance",
+            "attributes": [
+                "complete",
+                "abundant",
+                "full"
+            ],
+            "benefits": "Manifests abundance and completeness",
+            "etymology": "pra (fully) + bhuta (being)",
+            "verseRef": "MB 13.149.28"
+        },
+        {
+            "id": 61,
+            "sanskrit": "त्रिककुब्धाम",
+            "transliteration": "Trikakub-dhama",
+            "translation": "Abode of Three Quarters",
+            "meaning": "He who is the dwelling of the three quarters of existence",
+            "context": "Transcendent reality beyond manifest cosmos",
+            "attributes": [
+                "transcendent",
+                "supreme",
+                "cosmic"
+            ],
+            "benefits": "Reveals transcendent dimensions",
+            "etymology": "tri (three) + kakub (quarters) + dhama (abode)",
+            "verseRef": "MB 13.149.28"
+        },
+        {
+            "id": 62,
+            "sanskrit": "पवित्रम्",
+            "transliteration": "Pavitram",
+            "translation": "The Purifier",
+            "meaning": "He who purifies everything",
+            "context": "Supreme sanctifier",
+            "attributes": [
+                "purifier",
+                "holy",
+                "sanctifier"
+            ],
+            "benefits": "Purifies mind and environment",
+            "etymology": "From 'pu' - to purify",
+            "verseRef": "MB 13.149.28"
+        },
+        {
+            "id": 63,
+            "sanskrit": "मङ्गलं परम्",
+            "transliteration": "Mangalam Param",
+            "translation": "Supreme Auspiciousness",
+            "meaning": "He who is the highest auspiciousness",
+            "context": "Source of all good fortune",
+            "attributes": [
+                "auspicious",
+                "fortunate",
+                "blessed"
+            ],
+            "benefits": "Brings supreme auspiciousness",
+            "etymology": "mangala (auspicious) + param (supreme)",
+            "verseRef": "MB 13.149.28"
+        },
+        {
+            "id": 64,
+            "sanskrit": "ईशानः",
+            "transliteration": "Ishanah",
+            "translation": "The Ruler",
+            "meaning": "He who controls and rules everything",
+            "context": "Cosmic sovereignty",
+            "attributes": [
+                "ruler",
+                "sovereign",
+                "controller"
+            ],
+            "benefits": "Establishes righteous authority",
+            "etymology": "From 'ish' - to rule",
+            "verseRef": "MB 13.149.28"
+        },
+        {
+            "id": 65,
+            "sanskrit": "प्राणदः",
+            "transliteration": "Pranadah",
+            "translation": "Life-Giver",
+            "meaning": "He who bestows life-force to all",
+            "context": "Source of vital energy",
+            "attributes": [
+                "life-giver",
+                "vital",
+                "energizer"
+            ],
+            "benefits": "Vitalizes body and mind",
+            "etymology": "prana (life) + da (giver)",
+            "verseRef": "MB 13.149.29"
+        },
+        {
+            "id": 66,
+            "sanskrit": "प्राणः",
+            "transliteration": "Pranah",
+            "translation": "The Life-Breath",
+            "meaning": "He who is the vital breath in all beings",
+            "context": "Universal life-force",
+            "attributes": [
+                "life",
+                "breath",
+                "vital-force"
+            ],
+            "benefits": "Enhances vitality and energy",
+            "etymology": "From 'pra' + 'an' - to breathe forth",
+            "verseRef": "MB 13.149.29"
+        },
+        {
+            "id": 67,
+            "sanskrit": "ज्येष्ठः",
+            "transliteration": "Jyeshthah",
+            "translation": "The Eldest",
+            "meaning": "He who is the most ancient",
+            "context": "Primordial existence",
+            "attributes": [
+                "ancient",
+                "primordial",
+                "first"
+            ],
+            "benefits": "Connects to primordial wisdom",
+            "etymology": "Superlative of 'vridh' - old",
+            "verseRef": "MB 13.149.29"
+        },
+        {
+            "id": 68,
+            "sanskrit": "श्रेष्ठः",
+            "transliteration": "Shresthah",
+            "translation": "The Most Excellent",
+            "meaning": "He who is superior to all",
+            "context": "Supreme excellence",
+            "attributes": [
+                "excellent",
+                "supreme",
+                "superior"
+            ],
+            "benefits": "Cultivates excellence",
+            "etymology": "From 'shri' - excellence",
+            "verseRef": "MB 13.149.29"
+        },
+        {
+            "id": 69,
+            "sanskrit": "प्रजापतिः",
+            "transliteration": "Prajapatih",
+            "translation": "Lord of Creatures",
+            "meaning": "He who is the father and protector of all beings",
+            "context": "Progenitor and guardian",
+            "attributes": [
+                "progenitor",
+                "protector",
+                "father"
+            ],
+            "benefits": "Invokes paternal protection",
+            "etymology": "praja (creatures) + pati (lord)",
+            "verseRef": "MB 13.149.29"
+        },
+        {
+            "id": 70,
+            "sanskrit": "हिरण्यगर्भः",
+            "transliteration": "Hiranyagarbhah",
+            "translation": "Golden Womb",
+            "meaning": "He who is the cosmic womb containing the universe",
+            "context": "Source of cosmic manifestation",
+            "attributes": [
+                "cosmic",
+                "source",
+                "creative"
+            ],
+            "benefits": "Connects to cosmic creativity",
+            "etymology": "hiranya (golden) + garbha (womb)",
+            "verseRef": "MB 13.149.30"
+        },
+        {
+            "id": 71,
+            "sanskrit": "भूगर्भः",
+            "transliteration": "Bhugarbhah",
+            "translation": "Womb of Earth",
+            "meaning": "He who contains the earth within Himself",
+            "context": "Sustainer of terrestrial realm",
+            "attributes": [
+                "container",
+                "sustainer",
+                "earth"
+            ],
+            "benefits": "Grounds and stabilizes",
+            "etymology": "bhu (earth) + garbha (womb)",
+            "verseRef": "MB 13.149.30"
+        },
+        {
+            "id": 72,
+            "sanskrit": "माधवः",
+            "transliteration": "Madhavah",
+            "translation": "Consort of Lakshmi",
+            "meaning": "He who is the husband of Ma (Lakshmi); born in Madhu dynasty",
+            "context": "Lord of prosperity and fortune",
+            "attributes": [
+                "prosperity",
+                "fortune",
+                "divine-consort"
+            ],
+            "benefits": "Attracts prosperity and grace",
+            "etymology": "Ma (Lakshmi) + dhava (husband) or Madhu dynasty",
+            "verseRef": "MB 13.149.30"
+        },
+        {
+            "id": 73,
+            "sanskrit": "मधुसूदनः",
+            "transliteration": "Madhusudanah",
+            "translation": "Slayer of Madhu",
+            "meaning": "He who destroyed the demon Madhu",
+            "context": "Destroyer of ignorance and evil",
+            "attributes": [
+                "destroyer",
+                "protector",
+                "valor"
+            ],
+            "benefits": "Removes ignorance and evil tendencies",
+            "etymology": "Madhu (demon) + sudana (destroyer)",
+            "verseRef": "MB 13.149.30"
+        },
+        {
+            "id": 74,
+            "sanskrit": "ईश्वरः",
+            "transliteration": "Ishvarah",
+            "translation": "The Supreme Controller",
+            "meaning": "He who has supreme power over all",
+            "context": "Absolute sovereignty",
+            "attributes": [
+                "sovereign",
+                "controller",
+                "supreme"
+            ],
+            "benefits": "Surrenders to divine will",
+            "etymology": "From 'ish' - to rule, control",
+            "verseRef": "MB 13.149.30"
+        },
+        {
+            "id": 75,
+            "sanskrit": "विक्रमी",
+            "transliteration": "Vikrami",
+            "translation": "The Valorous",
+            "meaning": "He who possesses supreme prowess",
+            "context": "Divine courage and strength",
+            "attributes": [
+                "valorous",
+                "courageous",
+                "powerful"
+            ],
+            "benefits": "Instills courage and strength",
+            "etymology": "From 'vikram' - to step powerfully",
+            "verseRef": "MB 13.149.31"
+        },
+        {
+            "id": 76,
+            "sanskrit": "धन्वी",
+            "transliteration": "Dhanvi",
+            "translation": "Wielder of the Bow",
+            "meaning": "He who holds the divine bow Sharnga",
+            "context": "Warrior aspect protecting dharma",
+            "attributes": [
+                "warrior",
+                "protector",
+                "armed"
+            ],
+            "benefits": "Provides protection and victory",
+            "etymology": "From 'dhanu' - bow",
+            "verseRef": "MB 13.149.31"
+        },
+        {
+            "id": 77,
+            "sanskrit": "मेधावी",
+            "transliteration": "Medhavi",
+            "translation": "Supremely Intelligent",
+            "meaning": "He who possesses infinite wisdom",
+            "context": "Divine intelligence",
+            "attributes": [
+                "intelligent",
+                "wise",
+                "omniscient"
+            ],
+            "benefits": "Enhances intellect and wisdom",
+            "etymology": "From 'medha' - intelligence",
+            "verseRef": "MB 13.149.31"
+        },
+        {
+            "id": 78,
+            "sanskrit": "विक्रमः",
+            "transliteration": "Vikramah",
+            "translation": "The Valiant",
+            "meaning": "He who takes mighty strides",
+            "context": "Vamana's cosmic steps",
+            "attributes": [
+                "mighty",
+                "cosmic",
+                "expansive"
+            ],
+            "benefits": "Expands consciousness and reach",
+            "etymology": "vi (special) + krama (step)",
+            "verseRef": "MB 13.149.31"
+        },
+        {
+            "id": 79,
+            "sanskrit": "क्रमः",
+            "transliteration": "Kramah",
+            "translation": "The Orderly",
+            "meaning": "He who is the orderly sequence of creation",
+            "context": "Sequential manifestation",
+            "attributes": [
+                "orderly",
+                "sequential",
+                "systematic"
+            ],
+            "benefits": "Establishes order and sequence",
+            "etymology": "From 'kram' - to step, proceed",
+            "verseRef": "MB 13.149.31"
+        },
+        {
+            "id": 80,
+            "sanskrit": "अनुत्तमः",
+            "transliteration": "Anuttamah",
+            "translation": "The Unsurpassed",
+            "meaning": "He who has none superior to Him",
+            "context": "Absolute supremacy",
+            "attributes": [
+                "unsurpassed",
+                "supreme",
+                "highest"
+            ],
+            "benefits": "Recognizes ultimate reality",
+            "etymology": "an (not) + uttama (superior)",
+            "verseRef": "MB 13.149.32"
+        },
+        {
+            "id": 81,
+            "sanskrit": "दुराधर्षः",
+            "transliteration": "Duradharsah",
+            "translation": "The Invincible",
+            "meaning": "He who cannot be overcome or opposed",
+            "context": "Unconquerable power",
+            "attributes": [
+                "invincible",
+                "unconquerable",
+                "supreme"
+            ],
+            "benefits": "Grants invincibility to challenges",
+            "etymology": "dur (difficult) + adharsha (to overcome)",
+            "verseRef": "MB 13.149.32"
+        },
+        {
+            "id": 82,
+            "sanskrit": "कृतज्ञः",
+            "transliteration": "Kritajnah",
+            "translation": "Knower of Deeds",
+            "meaning": "He who knows all actions and their doers",
+            "context": "Omniscient witness of karma",
+            "attributes": [
+                "omniscient",
+                "karmic-witness",
+                "grateful"
+            ],
+            "benefits": "Ensures justice for all actions",
+            "etymology": "krita (deed) + jna (knower)",
+            "verseRef": "MB 13.149.32"
+        },
+        {
+            "id": 83,
+            "sanskrit": "कृतिः",
+            "transliteration": "Kritih",
+            "translation": "The Creation",
+            "meaning": "He who is Himself the act of creation",
+            "context": "Creation as divine expression",
+            "attributes": [
+                "creation",
+                "manifestation",
+                "activity"
+            ],
+            "benefits": "Inspires creative action",
+            "etymology": "From 'kri' - to do, create",
+            "verseRef": "MB 13.149.32"
+        },
+        {
+            "id": 84,
+            "sanskrit": "आत्मवान्",
+            "transliteration": "Atmavan",
+            "translation": "Self-Possessed",
+            "meaning": "He who is established in His own Self",
+            "context": "Self-established consciousness",
+            "attributes": [
+                "self-contained",
+                "independent",
+                "complete"
+            ],
+            "benefits": "Develops self-mastery",
+            "etymology": "atma (self) + van (possessing)",
+            "verseRef": "MB 13.149.32"
+        },
+        {
+            "id": 85,
+            "sanskrit": "सुरेशः",
+            "transliteration": "Sureshah",
+            "translation": "Lord of the Gods",
+            "meaning": "He who is the supreme ruler of all deities",
+            "context": "Supreme among divine beings",
+            "attributes": [
+                "supreme",
+                "lord",
+                "divine"
+            ],
+            "benefits": "Invokes blessings of all deities",
+            "etymology": "sura (gods) + isha (lord)",
+            "verseRef": "MB 13.149.33"
+        },
+        {
+            "id": 86,
+            "sanskrit": "शरणम्",
+            "transliteration": "Sharanam",
+            "translation": "The Refuge",
+            "meaning": "He who is the ultimate shelter for all",
+            "context": "Supreme sanctuary",
+            "attributes": [
+                "refuge",
+                "shelter",
+                "protection"
+            ],
+            "benefits": "Provides ultimate safety and shelter",
+            "etymology": "From 'shri' - to protect",
+            "verseRef": "MB 13.149.33"
+        },
+        {
+            "id": 87,
+            "sanskrit": "शर्म",
+            "transliteration": "Sharma",
+            "translation": "The Bliss",
+            "meaning": "He who is supreme happiness and joy",
+            "context": "Ultimate bliss",
+            "attributes": [
+                "bliss",
+                "happiness",
+                "joy"
+            ],
+            "benefits": "Bestows inner joy and peace",
+            "etymology": "From 'sham' - happiness",
+            "verseRef": "MB 13.149.33"
+        },
+        {
+            "id": 88,
+            "sanskrit": "विश्वरेताः",
+            "transliteration": "Vishvaretah",
+            "translation": "Cosmic Seed",
+            "meaning": "He whose seed is the universe",
+            "context": "Primal generative force",
+            "attributes": [
+                "generative",
+                "cosmic",
+                "creative"
+            ],
+            "benefits": "Awakens creative potential",
+            "etymology": "vishva (universe) + retas (seed)",
+            "verseRef": "MB 13.149.33"
+        },
+        {
+            "id": 89,
+            "sanskrit": "प्रजाभवः",
+            "transliteration": "Prajabhavah",
+            "translation": "Source of Beings",
+            "meaning": "He from whom all creatures originate",
+            "context": "Primal origin of life",
+            "attributes": [
+                "source",
+                "origin",
+                "creator"
+            ],
+            "benefits": "Connects to life's source",
+            "etymology": "praja (beings) + bhava (source)",
+            "verseRef": "MB 13.149.33"
+        },
+        {
+            "id": 90,
+            "sanskrit": "अहः",
+            "transliteration": "Ahah",
+            "translation": "The Day",
+            "meaning": "He who is the radiance of the day",
+            "context": "Illuminating consciousness",
+            "attributes": [
+                "radiant",
+                "illuminating",
+                "consciousness"
+            ],
+            "benefits": "Dispels darkness of ignorance",
+            "etymology": "From 'ah' - day, radiance",
+            "verseRef": "MB 13.149.34"
+        },
+        {
+            "id": 91,
+            "sanskrit": "संवत्सरः",
+            "transliteration": "Samvatsarah",
+            "translation": "The Year",
+            "meaning": "He who is time as the cycle of year",
+            "context": "Time as cosmic cycle",
+            "attributes": [
+                "time",
+                "cyclic",
+                "cosmic"
+            ],
+            "benefits": "Harmonizes with natural cycles",
+            "etymology": "sam (complete) + vatsara (year)",
+            "verseRef": "MB 13.149.34"
+        },
+        {
+            "id": 92,
+            "sanskrit": "व्यालः",
+            "transliteration": "Vyalah",
+            "translation": "The Serpent",
+            "meaning": "He who is as mysterious as the cosmic serpent",
+            "context": "Kundalini and cosmic mystery",
+            "attributes": [
+                "mysterious",
+                "powerful",
+                "primal"
+            ],
+            "benefits": "Awakens dormant spiritual power",
+            "etymology": "From 'vyal' - to wind, coil",
+            "verseRef": "MB 13.149.34"
+        },
+        {
+            "id": 93,
+            "sanskrit": "प्रत्ययः",
+            "transliteration": "Pratyayah",
+            "translation": "The Conviction",
+            "meaning": "He who is the basis of all knowledge and faith",
+            "context": "Foundation of certainty",
+            "attributes": [
+                "certainty",
+                "knowledge",
+                "faith"
+            ],
+            "benefits": "Establishes unwavering faith",
+            "etymology": "prati (towards) + aya (going) - conviction",
+            "verseRef": "MB 13.149.34"
+        },
+        {
+            "id": 94,
+            "sanskrit": "सर्वदर्शनः",
+            "transliteration": "Sarva-darshanah",
+            "translation": "All-Seeing",
+            "meaning": "He who sees everything everywhere",
+            "context": "Omniscient vision",
+            "attributes": [
+                "omniscient",
+                "all-seeing",
+                "witness"
+            ],
+            "benefits": "Develops comprehensive vision",
+            "etymology": "sarva (all) + darshana (seeing)",
+            "verseRef": "MB 13.149.34"
+        },
+        {
+            "id": 95,
+            "sanskrit": "अजः",
+            "transliteration": "Ajah",
+            "translation": "The Unborn",
+            "meaning": "He who is never born",
+            "context": "Uncreated existence",
+            "attributes": [
+                "unborn",
+                "eternal",
+                "uncreated"
+            ],
+            "benefits": "Transcends birth and death",
+            "etymology": "a (not) + ja (born)",
+            "verseRef": "MB 13.149.35"
+        },
+        {
+            "id": 96,
+            "sanskrit": "सर्वेश्वरः",
+            "transliteration": "Sarveshvarah",
+            "translation": "Lord of All",
+            "meaning": "He who is the supreme lord of everything",
+            "context": "Absolute sovereignty",
+            "attributes": [
+                "supreme",
+                "sovereign",
+                "lord"
+            ],
+            "benefits": "Total surrender to divine will",
+            "etymology": "sarva (all) + ishvara (lord)",
+            "verseRef": "MB 13.149.35"
+        },
+        {
+            "id": 97,
+            "sanskrit": "सिद्धः",
+            "transliteration": "Siddhah",
+            "translation": "The Perfected",
+            "meaning": "He who is ever-perfect and complete",
+            "context": "Eternal perfection",
+            "attributes": [
+                "perfect",
+                "complete",
+                "accomplished"
+            ],
+            "benefits": "Moves toward perfection",
+            "etymology": "From 'sidh' - to accomplish",
+            "verseRef": "MB 13.149.35"
+        },
+        {
+            "id": 98,
+            "sanskrit": "सिद्धिः",
+            "transliteration": "Siddhih",
+            "translation": "The Attainment",
+            "meaning": "He who is the goal and fulfillment",
+            "context": "Ultimate achievement",
+            "attributes": [
+                "attainment",
+                "fulfillment",
+                "goal"
+            ],
+            "benefits": "Grants spiritual attainments",
+            "etymology": "From 'sidh' - to accomplish",
+            "verseRef": "MB 13.149.35"
+        },
+        {
+            "id": 99,
+            "sanskrit": "सर्वादिः",
+            "transliteration": "Sarvadih",
+            "translation": "Beginning of All",
+            "meaning": "He who is the first cause of everything",
+            "context": "Primordial source",
+            "attributes": [
+                "first-cause",
+                "origin",
+                "primordial"
+            ],
+            "benefits": "Connects to ultimate source",
+            "etymology": "sarva (all) + adi (beginning)",
+            "verseRef": "MB 13.149.35"
+        },
+        {
+            "id": 100,
+            "sanskrit": "अच्युतः",
+            "transliteration": "Achyutah",
+            "translation": "The Infallible",
+            "meaning": "He who never falls from His status",
+            "context": "Unchanging permanence",
+            "attributes": [
+                "infallible",
+                "permanent",
+                "unchanging"
+            ],
+            "benefits": "Grants stability and permanence",
+            "etymology": "a (not) + chyuta (fallen)",
+            "verseRef": "MB 13.149.36"
+        }
+    ],
+    "categories": {
+        "protector": [6, 12, 21, 33, 69, 76, 86],
+        "creator": [5, 9, 32, 34, 43, 50, 70, 89],
+        "cosmic": [1, 2, 4, 25, 29, 48, 53, 61, 70, 78, 88, 91],
+        "compassionate": [6, 12, 22, 38, 58, 87],
+        "supreme": [2, 4, 11, 14, 24, 35, 36, 45, 49, 64, 68, 74, 80, 85, 96],
+        "eternal": [4, 13, 17, 42, 54, 56, 95],
+        "knowledge": [15, 16, 19, 47, 77, 82, 93, 94],
+        "liberation": [12, 18],
+        "purity": [10, 11, 62],
+        "yoga": [18, 19, 20],
+        "warrior": [21, 59, 73, 75, 76, 81],
+        "beauty": [23, 40, 57],
+        "wealth": [22, 30, 60, 72],
+        "sovereignty": [35, 36, 64, 74, 85, 96],
+        "existence": [7, 31, 37, 84, 95],
+        "time": [4, 42, 90, 91],
+        "auspicious": [27, 38, 63, 87],
+        "wisdom": [51, 77, 93]
+    },
+    "searchIndex": {
+        "universe": [1, 25, 50, 88],
+        "pervade": [1, 2],
+        "creator": [5, 9, 32, 34, 43, 50, 70, 89],
+        "sustainer": [6, 33],
+        "soul": [8, 10, 11, 20],
+        "liberation": [12],
+        "eternal": [4, 13, 17, 42, 54, 56, 67, 95],
+        "witness": [15, 82, 94],
+        "yoga": [18, 19],
+        "protection": [6, 21, 76, 86],
+        "supreme": [11, 14, 24, 35, 36, 45, 49, 64, 68, 74, 80, 85, 96],
+        "knowledge": [16, 19, 47, 77, 82, 93],
+        "wealth": [22, 30, 60, 72],
+        "beauty": [23, 40, 57],
+        "destroyer": [26, 59, 73],
+        "auspicious": [27, 38, 63, 87],
+        "stable": [28, 54],
+        "pure": [10, 62],
+        "lord": [35, 36, 49, 64, 69, 74, 85, 96],
+        "lotus": [40, 48],
+        "life": [65, 66, 89],
+        "ancient": [54, 67],
+        "excellent": [68],
+        "courage": [75, 81],
+        "intelligent": [77],
+        "invincible": [81],
+        "bliss": [38, 87],
+        "time": [4, 42, 90, 91],
+        "unborn": [95],
+        "perfect": [97, 98],
+        "infallible": [100]
+    },
+    "synonyms": {
+        "god": ["divine", "lord", "supreme", "ishvara"],
+        "soul": ["atma", "self", "consciousness", "spirit"],
+        "protect": ["guard", "defend", "shelter", "refuge"],
+        "create": ["make", "manifest", "produce", "originate"],
+        "eternal": ["permanent", "everlasting", "immortal", "timeless"],
+        "universe": ["cosmos", "world", "creation", "existence"],
+        "liberation": ["moksha", "freedom", "release", "salvation"],
+        "yoga": ["union", "connection", "discipline", "practice"],
+        "love": ["devotion", "bhakti", "affection", "compassion"],
+        "wisdom": ["knowledge", "intelligence", "understanding", "jnana"],
+        "power": ["strength", "might", "prowess", "shakti"],
+        "beauty": ["splendor", "grace", "radiance", "shri"],
+        "auspicious": ["fortunate", "blessed", "mangala", "shiva"]
+    }
+}
