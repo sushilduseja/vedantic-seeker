@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useAnimationControls } from 'm
 import { type Language } from '@/app/translations';
 import { type VishnuName } from './NameCard';
 import { NameDetailView } from './NameDetailView';
+import { groqService } from '@/app/services/GroqService';
 
 interface NameBrowserProps {
     names: VishnuName[];
@@ -23,12 +24,36 @@ export function NameBrowser({
     const [isPaused, setIsPaused] = useState(false);
     const controls = useAnimationControls();
     const x = useMotionValue(0);
+    const [translations, setTranslations] = useState<Record<number, { translation: string; meaning: string }>>({});
 
     // To create an infinite loop, we triplicate the names array for seamless looping
     const marqueeItems = useMemo(() => {
         if (!names || names.length === 0) return [];
         return [...names, ...names, ...names];
     }, [names]);
+
+    // Translate all names when lang changes to Hindi
+    useEffect(() => {
+        if (lang === 'hi' && names.length > 0) {
+            const translateAll = async () => {
+                const newTranslations: Record<number, { translation: string; meaning: string }> = {};
+
+                for (const name of names) {
+                    const [translation, meaning] = await Promise.all([
+                        groqService.translateText(name.translation, 'hi'),
+                        groqService.translateText(name.meaning, 'hi')
+                    ]);
+                    newTranslations[name.id] = { translation, meaning };
+                }
+
+                setTranslations(newTranslations);
+            };
+
+            translateAll();
+        } else {
+            setTranslations({});
+        }
+    }, [lang, names]);
 
     // Control animation based on pause state and popup state
     useEffect(() => {
@@ -139,12 +164,12 @@ export function NameBrowser({
 
                                 {/* Translation */}
                                 <p className="text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mt-3">
-                                    {name.translation}
+                                    {lang === 'hi' && translations[name.id] ? translations[name.id].translation : name.translation}
                                 </p>
 
                                 {/* Meaning */}
                                 <p className="text-slate-600 mt-4 leading-relaxed text-sm line-clamp-3">
-                                    {name.meaning}
+                                    {lang === 'hi' && translations[name.id] ? translations[name.id].meaning : name.meaning}
                                 </p>
 
                                 <div className="mt-auto pt-6">
