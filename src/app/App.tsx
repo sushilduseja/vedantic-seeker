@@ -25,16 +25,14 @@ export default function App() {
   const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
   const [aiEnabled, setAiEnabled] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [pendingAIRequest, setPendingAIRequest] = useState<{
-    messageId: string;
-    question: string;
-    searchResults: any[];
-  } | null>(null);
+  const [dynamicSuggestions, setDynamicSuggestions] = useState<string[]>([]);
+  const [currentDomain, setCurrentDomain] = useState<string>('General');
   const [lang, setLang] = useState<Language>('hi');
 
   useEffect(() => {
     loadDiverseQuestions();
 
+    // @ts-ignore
     const envKey = import.meta.env.VITE_GROQ_API_KEY;
     if (envKey) {
       groqService.setApiKey(envKey);
@@ -61,8 +59,8 @@ export default function App() {
   const handleBackToAtlas = useCallback(() => {
     setMessages([]); // Clears conversation to show Atlas
     setQuestion('');
-    setPendingAIRequest(null);
     setIsLoadingAI(false);
+    setDynamicSuggestions([]);
     // View remains 'conversation'
   }, []);
   const loadDiverseQuestions = async () => {
@@ -169,77 +167,66 @@ export default function App() {
     }
   };
 
-  const getConversationContext = () => {
-    return messages
-      .slice(-4)
-      .map(msg => ({
-        role: msg.type === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
-  };
 
-  const enhanceWithAI = async (
-    messageId: string,
-    question: string,
-    searchResults: any[]
-  ) => {
+
+  const requestSynthesize = async (messageId: string) => {
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    const message = messages[messageIndex];
+    // Find verse refs from the message or previous context
+    // The reference string usually contains "SB 1.2.3, SB 4.5.6"
+    const verseRefs = message.reference ? message.reference.split(',').map(r => r.trim()) : [];
+
     setIsLoadingAI(true);
-
     try {
-      const context = getConversationContext();
-      const aiResponse = await groqService.queryAI(question, searchResults, context, lang);
+      const response = await groqService.synthesizeDeeperInsights(message.content, verseRefs, lang);
 
-      if (!aiResponse.error || aiResponse.error === 'NO_API_KEY') {
-        setMessages(prev => {
-          const existingIndex = prev.findIndex(m => m.id === `${messageId}-ai`);
-          const aiMessage: Message = {
-            id: `${messageId}-ai`,
-            type: 'assistant',
-            content: aiResponse.content,
-            reference: aiResponse.sourceVerses?.join(', '),
-            timestamp: new Date(),
-            isAI: true
-          };
-
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = aiMessage;
-            return updated;
-          } else {
-            return [...prev, aiMessage];
-          }
-        });
-      } else {
-        setMessages(prev => [...prev, {
-          id: `${messageId}-ai-error`,
-          type: 'assistant',
-          content: aiResponse.content,
-          timestamp: new Date(),
-          isAI: true
-        }]);
-      }
-    } catch (error) {
-      console.error('AI enhancement error:', error);
-      setMessages(prev => [...prev, {
-        id: `${messageId}-ai-error`,
+      const synthesisMessage: Message = {
+        id: `${messageId}-syn`,
         type: 'assistant',
-        content: "I encountered a difficulty accessing deeper insights. The scriptural teaching above offers authentic guidance.",
-        timestamp: new Date(),
-        isAI: true
-      }]);
+        content: response.content || "Synthesis not available.",
+        isAI: true,
+        reference: response.sourceVerses?.join(', '),
+        timestamp: new Date()
+      };
+
+      // Insert after the current message
+      setMessages(prev => {
+        const newMessages = [...prev];
+        // If the next message is already a synthesis (optional check), replace it? 
+        // For now, just append after
+        const idx = newMessages.findIndex(m => m.id === messageId);
+        newMessages.splice(idx + 1, 0, synthesisMessage);
+        return newMessages;
+      });
+
+      // Generate new follow-on questions based on this new synthesis
+      generateDynamicQuestions(synthesisMessage.content);
+
+    } catch (error) {
+      console.error("Synthesis error:", error);
     } finally {
       setIsLoadingAI(false);
-      setPendingAIRequest(null);
     }
   };
 
-  const requestAIInsight = () => {
-    if (pendingAIRequest) {
-      enhanceWithAI(
-        pendingAIRequest.messageId,
-        pendingAIRequest.question,
-        pendingAIRequest.searchResults
-      );
+  const generateDynamicQuestions = async (contextContent: string) => {
+    // We use the last few messages as context
+    const recentHistory = messages.slice(-2).map(m => ({
+      role: m.type,
+      content: m.content
+    }));
+    // Add the new content to history for the prompt
+    recentHistory.push({ role: 'assistant', content: contextContent });
+
+    try {
+      const questions = await groqService.generateFollowUpQuestions(recentHistory, currentDomain, lang);
+      if (questions && questions.length > 0) {
+        setDynamicSuggestions(questions);
+      }
+    } catch (e) {
+      console.error("Failed to generate dynamic questions", e);
     }
   };
 
@@ -286,106 +273,22 @@ export default function App() {
     setMessages([]);
     setQuestion('');
     setUsedQuestionIds(new Set());
-    setPendingAIRequest(null);
     setIsLoadingAI(false);
+    setDynamicSuggestions([]);
   }, []);
 
-  const handleFollowUpSubmit = useCallback(async (followUpQuestion: string) => {
-    if (!followUpQuestion.trim() || isLoading) return;
+  const handleSubmit = useCallback(async (overrideQuestion?: string, domain?: string) => {
+    if (domain) setCurrentDomain(domain);
 
-    setIsLoading(true);
-    setPendingAIRequest(null);
-
-    try {
-      const searchQuery = buildContextualQuery(followUpQuestion, messages);
-      const allResults = await findRelevantContent(searchQuery, lang);
-
-      const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
-      const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
-
-      if (resultsToUse.length > 0) {
-        const topResult = resultsToUse[0];
-        setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
-
-        const messageId = (Date.now() + 1).toString();
-        let displayContent = topResult.description;
-
-        // Auto-translate if in Hindi mode and content looks like English
-        // We check for typical English characters at the start
-        if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(displayContent.slice(0, 50))) {
-          try {
-            displayContent = await groqService.translateText(displayContent, 'hi');
-          } catch (e) {
-            console.error('Translation failed:', e);
-          }
-        }
-
-        const assistantMessage: Message = {
-          id: messageId,
-          type: 'assistant',
-          content: displayContent,
-          reference: topResult.reference,
-          timestamp: new Date(),
-          confidence: topResult.confidence
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
-
-        const confidence = topResult.confidence || 0;
-
-        if (aiEnabled) {
-          if (confidence < 30) {
-            setTimeout(() => {
-              // Pass the content to AI context
-              const resultForAI = { ...topResult, description: displayContent };
-              enhanceWithAI(messageId, followUpQuestion, [resultForAI]);
-            }, 100);
-          } else if (confidence >= 30 && confidence <= 60) {
-            setPendingAIRequest({
-              messageId,
-              question: followUpQuestion,
-              searchResults: resultsToUse.slice(0, 3)
-            });
-          }
-        }
-
-      } else {
-        const messageId = (Date.now() + 1).toString();
-        const assistantMessage: Message = {
-          id: messageId,
-          type: 'assistant',
-          content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: "I encountered an error searching the teachings. Please try rephrasing your question or ask something fundamental like 'Who am I?' or 'What is the purpose of life?'",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [question, lang, messages, isLoading, usedQuestionIds, aiEnabled]);
-
-  const handleSubmit = useCallback(async (overrideQuestion?: string) => {
     const questionToSubmit = overrideQuestion || question;
     if (!questionToSubmit.trim() || isLoading) return;
 
     let displayQuestion = questionToSubmit;
+    setIsLoading(true);
 
-    // Translate question to Hindi if needed
+    // Translate if Hindi
     if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(questionToSubmit.slice(0, 50))) {
-      try {
-        displayQuestion = await groqService.translateText(questionToSubmit, 'hi');
-      } catch (e) {
-        console.error('Question translation failed:', e);
-      }
+      try { displayQuestion = await groqService.translateText(questionToSubmit, 'hi'); } catch { }
     }
 
     const userMessage: Message = {
@@ -396,122 +299,98 @@ export default function App() {
     };
 
     setMessages(prev => [...prev, userMessage]);
-
-    const currentQuestion = questionToSubmit;
     setQuestion('');
-    setIsLoading(true);
-    setPendingAIRequest(null);
+    setDynamicSuggestions([]);
 
-    try {
-      const searchQuery = messages.length > 0
-        ? buildContextualQuery(questionToSubmit, messages)
-        : questionToSubmit;
+    // Determine query context
+    const searchQuery = messages.length > 0
+      ? buildContextualQuery(displayQuestion, messages)
+      : displayQuestion;
 
-      const allResults = await findRelevantContent(searchQuery, lang);
+    // 1. Get Ground Truth Context First
+    const allResults = await findRelevantContent(searchQuery, lang);
+    const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
+    const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
 
-      const freshResults = allResults.filter(r => !usedQuestionIds.has(r.questionId));
-      const resultsToUse = freshResults.length > 0 ? freshResults : allResults;
-
-      if (resultsToUse.length > 0) {
-        const topResult = resultsToUse[0];
-
-        setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
-
-        const messageId = (Date.now() + 1).toString();
-        let displayContent = topResult.description;
-        if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(displayContent.slice(0, 50))) {
-          try {
-            displayContent = await groqService.translateText(displayContent, 'hi');
-          } catch (e) {
-            console.error('Translation failed:', e);
-          }
-        }
-
-        const assistantMessage: Message = {
-          id: messageId,
-          type: 'assistant',
-          content: displayContent,
-          reference: topResult.reference,
-          timestamp: new Date(),
-          confidence: topResult.confidence
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
-
-        const confidence = topResult.confidence || 0;
-
-        if (aiEnabled) {
-          if (confidence < 30) {
-            setTimeout(() => {
-              const resultForAI = { ...topResult, description: displayContent };
-              enhanceWithAI(messageId, currentQuestion, [resultForAI]);
-            }, 100);
-          } else if (confidence >= 30 && confidence <= 60) {
-            setPendingAIRequest({
-              messageId,
-              question: currentQuestion,
-              searchResults: resultsToUse.slice(0, 3)
-            });
-          }
-        }
-
-      } else {
-        const messageId = (Date.now() + 1).toString();
-        const assistantMessage: Message = {
-          id: messageId,
-          type: 'assistant',
-          content: "I couldn't find a direct answer in the teachings. This may be a topic that requires deeper contemplation. Could you rephrase your question or explore related concepts like the nature of the soul, dharma, karma, or devotional practice?",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-
-        if (aiEnabled) {
-          setTimeout(() => {
-            enhanceWithAI(messageId, currentQuestion, []);
-          }, 100);
-        }
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
-      const errorMessage: Message = {
+    // Zero-Found Fallback
+    if (resultsToUse.length === 0) {
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "I encountered an error searching the teachings. Please try rephrasing your question or ask something fundamental like 'Who am I?' or 'What is the purpose of life?'",
+        content: lang === 'hi'
+          ? "मुझे धर्मग्रंथों में इस प्रश्न का सीधा उत्तर नहीं मिला।"
+          : "I couldn't find a direct answer in the teachings.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
+      return;
+    }
+
+    const topResult = resultsToUse[0];
+    setUsedQuestionIds(prev => new Set([...prev, topResult.questionId]));
+
+    // 2. AI Generation (Primary)
+    try {
+      if (!aiEnabled) throw new Error('AI_DISABLED');
+
+      const aiResponse = await groqService.generateGroundedAnswer(
+        displayQuestion,
+        topResult,
+        currentDomain,
+        lang
+      );
+
+      if (aiResponse.error || !aiResponse.content) {
+        throw new Error('AI_FAILURE');
+      }
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: aiResponse.content,
+        timestamp: new Date(),
+        isAI: true,
+        sourceVerses: aiResponse.sourceVerses
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+      generateDynamicQuestions(aiResponse.content);
+
+    } catch (error) {
+      // 3. Fallback to Static Content (Graceful)
+      console.warn('Fallback to static content:', error);
+
+      let displayContent = topResult.description;
+
+      // Auto-translate fallback if needed
+      if (lang === 'hi' && /^[A-Za-z0-9\s.,!?'"()\-:;]+$/.test(displayContent.slice(0, 50))) {
+        try {
+          displayContent = await groqService.translateText(displayContent, 'hi');
+        } catch { }
+      }
+
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: displayContent,
+        timestamp: new Date(),
+        isAI: false,
+        reference: topResult.reference,
+        confidence: topResult.confidence
+      };
+      setMessages(prev => [...prev, fallbackMessage]);
+      generateDynamicQuestions(displayContent);
     } finally {
       setIsLoading(false);
     }
-  }, [question, lang, messages, isLoading, usedQuestionIds, aiEnabled]);
+  }, [question, lang, messages, isLoading, usedQuestionIds, currentDomain, aiEnabled]);
+
+  const handleFollowUpSubmit = useCallback((followUpQuestion: string) => {
+    handleSubmit(followUpQuestion);
+  }, [handleSubmit]);
 
 
 
-  const initialSuggestionsTranslated = [
-    t(lang, 'suggestion1'),
-    t(lang, 'suggestion2'),
-    t(lang, 'suggestion3'),
-    t(lang, 'suggestion4'),
-    t(lang, 'suggestion5'),
-    t(lang, 'suggestion6'),
-    t(lang, 'suggestion7'),
-    t(lang, 'suggestion8'),
-    t(lang, 'suggestion9'),
-    t(lang, 'suggestion10'),
-    t(lang, 'suggestion11'),
-    t(lang, 'suggestion12')
-  ];
-
-  const followUpSuggestions = [
-    t(lang, 'tellMeMore'),
-    t(lang, 'practiceDaily'),
-    t(lang, 'obstacles'),
-    t(lang, 'example'),
-    t(lang, 'applyLife'),
-    t(lang, 'deeperInsights'),
-    t(lang, 'practicalTechniques'),
-    t(lang, 'scripturesSay')
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 relative overflow-hidden">
@@ -675,27 +554,14 @@ export default function App() {
                   </motion.div>
                 ) : (
                   <div className="space-y-6">
-                    <ConversationView messages={messages} isLoading={isLoading} lang={lang} />
+                    <ConversationView
+                      messages={messages}
+                      isLoading={isLoading}
+                      lang={lang}
+                      onSynthesize={requestSynthesize}
+                    />
 
-                    {pendingAIRequest && !isLoadingAI && messages.filter(m => m.type === 'assistant').length >= 4 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex justify-center"
-                      >
-                        <div className="relative group">
-                          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                          <button
-                            onClick={requestAIInsight}
-                            className="relative flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all hover:scale-105 overflow-hidden"
-                          >
-                            <div className="absolute inset-0 bg-white/20 skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
-                            <Sparkles className="size-5 animate-pulse" />
-                            <span className="text-base font-bold tracking-wide">{t(lang, 'getAISynthesis')}</span>
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
+                    {/* Legacy AI button removed */}
 
                     {isLoadingAI && (
                       <motion.div
@@ -708,20 +574,12 @@ export default function App() {
                       </motion.div>
                     )}
 
-                    {!isLoading && messages.length > 0 && (
+                    {!isLoading && messages.length > 0 && dynamicSuggestions.length > 0 && (
                       <QuickSuggestions
-                        suggestions={followUpSuggestions}
+                        suggestions={dynamicSuggestions}
                         lang={lang}
                         onSelect={(q) => {
                           setQuestion('');
-
-                          const userMessage: Message = {
-                            id: Date.now().toString(),
-                            type: 'user',
-                            content: q,
-                            timestamp: new Date()
-                          };
-                          setMessages(prev => [...prev, userMessage]);
                           handleFollowUpSubmit(q);
                         }}
                       />

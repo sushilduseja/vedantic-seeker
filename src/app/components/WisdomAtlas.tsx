@@ -23,7 +23,7 @@ interface Domain {
 }
 
 interface WisdomAtlasProps {
-    onSelectQuestion: (question: string) => void;
+    onSelectQuestion: (question: string, domain: string) => void;
     lang: Language;
 }
 
@@ -54,8 +54,7 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
     const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
     const [exploredDomains, setExploredDomains] = useState<Set<string>>(new Set());
     const [isHovering, setIsHovering] = useState(false);
-    const [translatedQuestions, setTranslatedQuestions] = useState<Record<string, string[]>>({});
-    const [expandedTranslations, setExpandedTranslations] = useState<Record<string, string>>({});
+    const [translatedQuestions, setTranslatedQuestions] = useState<Record<string, string>>({});
 
     useEffect(() => {
         fetch('/data/srimad-bhagavatam.json')
@@ -63,6 +62,23 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
             .then(data => setQuestions(data.questions || []))
             .catch(console.error);
     }, []);
+
+    useEffect(() => {
+        if (lang === 'hi' && questions.length > 0) {
+            questions.slice(0, 50).forEach(q => { // Limit to avoid hitting rate limits too hard initially
+                if (!translatedQuestions[q.id]) {
+                    groqService.translateText(q.question, 'hi')
+                        .then(translated => {
+                            if (translated && translated !== q.question) {
+                                setTranslatedQuestions(prev => ({ ...prev, [q.id]: translated }));
+                            }
+                        })
+                        .catch(() => { });
+                }
+            });
+        }
+    }, [lang, questions, translatedQuestions]);
+
 
     const domainStats = useMemo(() => {
         const stats: Record<string, { total: number; foundational: number; intermediate: number; advanced: number; questions: Question[] }> = {};
@@ -79,53 +95,6 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
         return stats;
     }, [questions]);
 
-    // Translate Tooltip Questions
-    useEffect(() => {
-        if (lang === 'hi' && hoveredDomain) {
-            const stats = domainStats[hoveredDomain];
-            if (!stats || translatedQuestions[hoveredDomain]) return;
-
-            const questionsToTranslate = stats.questions.slice(0, 3).map(q => q.question);
-            Promise.all(questionsToTranslate.map(q => groqService.translateText(q, 'hi')))
-                .then(translations => {
-                    setTranslatedQuestions(prev => ({
-                        ...prev,
-                        [hoveredDomain]: translations
-                    }));
-                })
-                .catch(console.error);
-        }
-    }, [hoveredDomain, lang, domainStats, translatedQuestions]);
-
-    // Translate Expanded View Questions
-    useEffect(() => {
-        if (lang === 'hi' && expandedDomain) {
-            const stats = domainStats[expandedDomain];
-            if (!stats) return;
-
-            // Collect all visible questions in the modal
-            const foundational = stats.questions.filter(q => q.difficulty === 'foundational').slice(0, 8);
-            const intermediate = stats.questions.filter(q => q.difficulty === 'intermediate').slice(0, 4);
-            const advanced = stats.questions.filter(q => q.difficulty === 'advanced').slice(0, 4);
-            const visibleQuestions = [...foundational, ...intermediate, ...advanced];
-
-            const questionsToTranslate = visibleQuestions
-                .filter(q => !expandedTranslations[q.question]) // Only translate untranslated ones
-                .map(q => q.question);
-
-            if (questionsToTranslate.length > 0) {
-                Promise.all(questionsToTranslate.map(q => groqService.translateText(q, 'hi')))
-                    .then(translations => {
-                        const newTranslations: Record<string, string> = {};
-                        questionsToTranslate.forEach((q, i) => {
-                            newTranslations[q] = translations[i];
-                        });
-                        setExpandedTranslations(prev => ({ ...prev, ...newTranslations }));
-                    })
-                    .catch(console.error);
-            }
-        }
-    }, [expandedDomain, lang, domainStats, expandedTranslations]);
 
     const handleDomainClick = (domainId: string) => {
         setExpandedDomain(domainId);
@@ -133,9 +102,9 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
         setIsHovering(false); // Reset hover state on click
     };
 
-    const handleQuestionSelect = (question: string) => {
+    const handleQuestionSelect = (question: string, domainId: string) => {
         setExpandedDomain(null);
-        onSelectQuestion(question);
+        onSelectQuestion(question, domainId);
     };
 
     const handleWanderRandomly = () => {
@@ -146,11 +115,12 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
         if (domainQuestions.length > 0) {
             const randomQ = domainQuestions[Math.floor(Math.random() * domainQuestions.length)];
             setExploredDomains(prev => new Set([...prev, randomDomain.id]));
-            onSelectQuestion(randomQ.question);
+            onSelectQuestion(translatedQuestions[randomQ.id] || randomQ.question, randomDomain.id);
         }
     };
 
     const getDomainName = (domain: Domain) => lang === 'hi' ? domain.nameHi : domain.name;
+    const getQuestionText = (q: Question) => lang === 'hi' ? (translatedQuestions[q.id] || q.question) : q.question;
 
     return (
         <div className="relative w-full max-w-3xl mx-auto">
@@ -314,11 +284,8 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        {(lang === 'hi' && translatedQuestions[domain.id]
-                                                            ? translatedQuestions[domain.id]
-                                                            : stats.questions.slice(0, 3).map(q => q.question)
-                                                        ).map((qText, i) => (
-                                                            <p key={i} className="text-xs font-medium text-slate-600 line-clamp-2 leading-relaxed">• {qText}</p>
+                                                        {stats.questions.slice(0, 3).map((q, i) => (
+                                                            <p key={i} className="text-xs font-medium text-slate-600 line-clamp-2 leading-relaxed">• {getQuestionText(q)}</p>
                                                         ))}
                                                     </div>
                                                     <div className="mt-3 text-xs text-amber-600 flex items-center gap-1 font-bold">
@@ -417,10 +384,10 @@ export function WisdomAtlas({ onSelectQuestion, lang }: WisdomAtlasProps) {
                                                                     key={q.id}
                                                                     className="text-left p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors w-full"
                                                                     whileHover={{ x: 4 }}
-                                                                    onClick={() => handleQuestionSelect(q.question)}
+                                                                    onClick={() => handleQuestionSelect(getQuestionText(q), expandedDomain!)}
                                                                 >
                                                                     <span className="text-sm font-medium text-slate-700">
-                                                                        {lang === 'hi' ? (expandedTranslations[q.question] || q.question) : q.question}
+                                                                        {getQuestionText(q)}
                                                                     </span>
                                                                 </motion.button>
                                                             ))}

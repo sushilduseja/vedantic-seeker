@@ -28,12 +28,12 @@ export const translations = {
         askFirst: 'Ask Your First Question',
         askFirstDesc: 'Begin a conversation to explore spiritual wisdom. Ask follow-up questions to go deeper.',
         sacredTexts: 'Sacred Texts',
-        aiSynthesis: 'AI Synthesis',
+        aiSynthesis: 'Synthesis',
         reference: 'Reference',
         sourceVerses: 'Source Verses',
         searching: 'Searching ancient wisdom...',
         synthesizing: 'Synthesizing deeper wisdom...',
-        getAISynthesis: 'Get AI Synthesis',
+        getAISynthesis: 'Get Synthesis',
         newConversation: 'New Conversation',
 
         // Input
@@ -122,12 +122,12 @@ export const translations = {
         askFirst: 'अपना पहला प्रश्न पूछें',
         askFirstDesc: 'आध्यात्मिक ज्ञान का अन्वेषण करने के लिए बातचीत शुरू करें। गहराई में जाने के लिए अनुवर्ती प्रश्न पूछें।',
         sacredTexts: 'पवित्र ग्रंथ',
-        aiSynthesis: 'AI संश्लेषण',
+        aiSynthesis: 'संश्लेषण',
         reference: 'संदर्भ',
         sourceVerses: 'स्रोत श्लोक',
         searching: 'प्राचीन ज्ञान खोज रहे हैं...',
         synthesizing: 'गहन ज्ञान का संश्लेषण हो रहा है...',
-        getAISynthesis: 'AI संश्लेषण प्राप्त करें',
+        getAISynthesis: 'संश्लेषण प्राप्त करें',
         newConversation: 'नई बातचीत',
 
         // Input

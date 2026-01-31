@@ -8,6 +8,7 @@ export interface Message {
   type: 'user' | 'assistant';
   content: string;
   reference?: string;
+  sourceVerses?: string[];
   timestamp: Date;
   isAI?: boolean;
   confidence?: number;
@@ -17,6 +18,7 @@ interface ConversationViewProps {
   messages: Message[];
   isLoading: boolean;
   lang?: Language;
+  onSynthesize?: (messageId: string) => void;
 }
 
 function parseAIContent(content: string): { text: string; concepts?: string[]; bullets?: string[] } {
@@ -54,7 +56,7 @@ function parseAIContent(content: string): { text: string; concepts?: string[]; b
   };
 }
 
-export function ConversationView({ messages, isLoading, lang = 'en' }: ConversationViewProps) {
+export function ConversationView({ messages, isLoading, lang = 'en', onSynthesize }: ConversationViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const userMessageRef = useRef<HTMLDivElement>(null);
@@ -88,6 +90,12 @@ export function ConversationView({ messages, isLoading, lang = 'en' }: Conversat
           const isLast = index === messages.length - 1;
           const isUserContext = index === messages.length - 2;
 
+          // Check if this message has already been synthesized (check if next message is AI linked to this, mostly implied by flow, 
+          // but here we just show button if it's assistant and NOT AI itself, or maybe even if it is AI we could synthesize deeper?
+          // The requirement: "Show response + AI Synthesis button → Click synthesizes deeper explanation". 
+          // Usually means the initial response (search result) gets a button.
+          const showSynthesizeButton = message.type === 'assistant' && !message.isAI && onSynthesize;
+
           return (
             <motion.div
               key={message.id}
@@ -119,23 +127,25 @@ export function ConversationView({ messages, isLoading, lang = 'en' }: Conversat
                   } p-5`}
               >
                 {message.type === 'assistant' && (
-                  <div className="flex items-center gap-2 mb-3">
-                    {message.isAI ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full">
-                        <Sparkles className="size-3.5 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-700">{t(lang, 'aiSynthesis')}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full">
-                        <BookOpen className="size-3.5 text-amber-600" />
-                        <span className="text-xs font-semibold text-amber-700">{t(lang, 'sacredTexts')}</span>
-                      </div>
-                    )}
-                    {message.confidence !== undefined && !message.isAI && (
-                      <span className="text-xs text-slate-400 font-medium">
-                        {message.confidence}% match
-                      </span>
-                    )}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {message.isAI ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full">
+                          <Sparkles className="size-3.5 text-purple-600" />
+                          <span className="text-xs font-semibold text-purple-700">{t(lang, 'aiSynthesis')}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full">
+                          <BookOpen className="size-3.5 text-amber-600" />
+                          <span className="text-xs font-semibold text-amber-700">{t(lang, 'sacredTexts')}</span>
+                        </div>
+                      )}
+                      {message.confidence !== undefined && !message.isAI && (
+                        <span className="text-xs text-slate-400 font-medium">
+                          {message.confidence}% match
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {/* Bullet points for AI synthesis */}
@@ -211,6 +221,24 @@ export function ConversationView({ messages, isLoading, lang = 'en' }: Conversat
                     </div>
                   </motion.div>
                 )}
+
+                {showSynthesizeButton && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="mt-4 flex justify-end"
+                  >
+                    <button
+                      onClick={() => onSynthesize && onSynthesize(message.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold transition-colors border border-purple-200"
+                    >
+                      <Sparkles className="size-3" />
+                      {t(lang, 'getAISynthesis') || (lang === 'hi' ? 'गहन चिंतन' : 'Deep Insight')}
+                    </button>
+                  </motion.div>
+                )}
+
               </motion.div>
 
               {message.type === 'user' && (

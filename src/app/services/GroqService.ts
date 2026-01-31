@@ -16,15 +16,26 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const CACHE_DURATION = 1000 * 60 * 60;
 const MAX_OUTPUT_TOKENS = 600;
 
+// const MODELS = [
+//   'llama-3.3-70b-versatile',
+//   'llama-3.1-8b-instant',
+//   'llama-4-maverick-17b-128e-instruct-fp8',
+//   'openai/gpt-oss-120b-128k'
+// ];
+
 const MODELS = [
-  'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
-  'llama-4-maverick-17b-128e-instruct-fp8',
-  'openai/gpt-oss-120b-128k'
+  'openai/gpt-oss-20b',
+  'llama-3.3-70b-versatile',
+  'meta-llama/llama-4-scout-17b-16e-instruct',
+  'qwen/qwen3-32b',
+  'openai/gpt-oss-120b'
 ];
 
 class GroqService {
   private cache: Map<string, CachedResponse> = new Map();
+  private followUpCache: Map<string, string[]> = new Map();
+  private synthesisCache: Map<string, AIResponse> = new Map();
   private apiKey: string | null = null;
   private currentModelIndex = 0;
 
@@ -394,11 +405,182 @@ Provide a deeper spiritual understanding of this divine name. Explain its theolo
     };
   }
 
-  clearCache() {
-    this.cache.clear();
+  async generateGroundedAnswer(
+    question: string,
+    context: any,
+    domain: string,
+    lang: Language = 'en'
+  ): Promise<AIResponse> {
+    if (!this.apiKey) return { content: '', model: '', error: 'NO_API_KEY' };
+
+    const contextText = `
+      Title: ${context.description}
+      Verses: ${context.reference || 'General Wisdom'}
+      Domain: ${domain}
+    `.trim();
+
+    const prompt = `
+      You are a wise Vedantic scholar.
+      Task: Answer the user's question STRICTLY based on the provided Context.
+      
+      Constraints:
+      1. Use ONLY the provided context and verses. Do NOT hallucinate.
+      2. Length: 100 to 150 words.
+      3. Tone: Devotional, decisive, compassionate.
+      4. Language: ${lang === 'hi' ? 'Hindi' : 'English'}.
+      5. No meta-commentary. Start directly.
+      
+      Context:
+      ${contextText}
+      
+      Question: ${question}
+    `;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: "You are a specialized Vedantic AI. Output only the answer." },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 300,
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) throw new Error('API_ERROR');
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || '';
+
+      return {
+        content,
+        model: 'llama-3.3-70b-versatile',
+        sourceVerses: context.reference ? [context.reference] : []
+      };
+    } catch (error) {
+      console.error('Groq Answer Generation Error:', error);
+      return { content: '', model: '', error: 'API_ERROR' };
+    }
   }
+
+  async generateFollowUpQuestions(
+    history: Array<{ role: string; content: string }>,
+    domain: string,
+    lang: Language = 'en'
+  ): Promise<string[]> {
+    if (!this.apiKey) return [];
+
+    // Simple hashing for cache key
+    const historyHash = JSON.stringify(history.slice(-1)).substring(0, 50);
+    const cacheKey = `qs-${historyHash}-${domain}-${lang}`;
+    if (this.followUpCache.has(cacheKey)) return this.followUpCache.get(cacheKey)!;
+
+    const prompt = `
+      Generate exactly 3 short, profound follow-up questions based on the conversation.
+      Domain: ${domain}. Language: ${lang === 'hi' ? 'Hindi' : 'English'}.
+      
+      Constraints:
+      1. Questions must deepen the spiritual inquiry (Sadhana, Philosophy, Application).
+      2. Max 10-12 words per question.
+      3. No generic questions like "Tell me more". Be specific to the content.
+      4. Output JSON format: { "questions": ["Q1", "Q2", "Q3"] }
+    `;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            { role: 'system', content: `Context: ${history[history.length - 1]?.content.substring(0, 200)}...` },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.4
+        })
+      });
+
+      if (!response.ok) return [];
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) return [];
+
+      const parsed = JSON.parse(content);
+      const questions = parsed.questions || [];
+      this.followUpCache.set(cacheKey, questions);
+      return questions;
+    } catch (error) {
+      // Fallback static questions if AI fails
+      return lang === 'hi'
+        ? ["और बताएं", "दैनिक जीवन में कैसे अपनाएं?", "इसका गहरा अर्थ क्या है?"]
+        : ["Tell me more", "How to apply this daily?", "What is the deeper meaning?"];
+    }
+  }
+
+  async synthesizeDeeperInsights(
+    answer: string,
+    verseRefs: string[],
+    lang: Language = 'en'
+  ): Promise<AIResponse> {
+    if (!this.apiKey) return { content: '', model: '', error: 'NO_API_KEY' };
+
+    const cacheKey = `syn-${answer.substring(0, 30)}-${lang}`;
+    if (this.synthesisCache.has(cacheKey)) return this.synthesisCache.get(cacheKey)!;
+
+    const prompt = `
+      Synthesize a deeper spiritual insight from the text below.
+      
+      Constraints:
+      1. Focus on the esoteric meaning (Tattva) and practical application (Sadhana).
+      2. Length: 100-150 words.
+      3. Language: ${lang === 'hi' ? 'Hindi' : 'English'}.
+      4. No filler. Go straight to the point.
+      
+      Text: "${answer}"
+      Verses: ${verseRefs.join(', ')}
+    `;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.4
+        })
+      });
+
+      if (!response.ok) throw new Error('API_ERROR');
+      const data = await response.json();
+
+      const result = {
+        content: data.choices?.[0]?.message?.content || '',
+        model: 'llama-3.3-70b-versatile',
+        sourceVerses: verseRefs
+      };
+
+      this.synthesisCache.set(cacheKey, result);
+      return result;
+    } catch (error) {
+      return { content: '', model: '', error: 'API_ERROR' };
+    }
+  }
+
   async translateText(text: string, targetLang: 'hi' | 'en'): Promise<string> {
-    // Simple cache for translations
     const cacheKey = `trans:${targetLang}:${text.slice(0, 50)}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached.content;
@@ -410,7 +592,6 @@ Provide a deeper spiritual understanding of this divine name. Explain its theolo
       if (!response.ok) return text;
 
       const data = await response.json();
-      // Google Translate returns structure: [[["Translated", "Original", ...], ...], ...]
       const translation = data[0].map((item: any) => item[0]).join('');
 
       this.setCached(cacheKey, {
@@ -421,9 +602,14 @@ Provide a deeper spiritual understanding of this divine name. Explain its theolo
 
       return translation;
     } catch (e) {
-      console.error('Translation error:', e);
       return text;
     }
+  }
+
+  clearCache() {
+    this.cache.clear();
+    this.followUpCache.clear();
+    this.synthesisCache.clear();
   }
 }
 
